@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UpSkill AI | Skill Gap Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Enhanced Skill Gap Analysis Styles */
+        .analysis-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        
+        .stat-card { 
+            background: var(--bg-panel); 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-lg); 
+            padding: 1.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        
+        .stat-value { 
+            font-size: 2.5rem; 
+            font-weight: 600; 
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label { 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            color: var(--text-muted); 
+            font-weight: 600;
+        }
+        
+        .readiness-circle { 
+            width: 140px; 
+            height: 140px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 2.5rem; 
+            font-weight: 700; 
+            margin: 0 auto 1rem;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0,176,116,0.3);
+        }
+        
+        .readiness-circle::after {
+            content: '%';
+            font-size: 1.2rem;
+            margin-left: 0.2rem;
+        }
+        
+        .skill-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.75rem; 
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        
+        .skill-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .skill-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        
+        .skill-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .skill-item { 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius); 
+            padding: 1rem 1.25rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .skill-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+        
+        .skill-badge { 
+            padding: 0.35rem 0.85rem; 
+            border-radius: 16px; 
+            font-size: 0.7rem; 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-high { 
+            background: rgba(239,68,68,0.15); 
+            color: #ef4444; 
+            border: 1px solid rgba(239,68,68,0.3);
+            box-shadow: 0 2px 8px rgba(239,68,68,0.2);
+        }
+        
+        .badge-medium { 
+            background: rgba(251,146,60,0.15); 
+            color: #fb923c; 
+            border: 1px solid rgba(251,146,60,0.3);
+            box-shadow: 0 2px 8px rgba(251,146,60,0.2);
+        }
+        
+        .badge-low { 
+            background: rgba(96,165,250,0.15); 
+            color: #60a5fa; 
+            border: 1px solid rgba(96,165,250,0.3);
+            box-shadow: 0 2px 8px rgba(96,165,250,0.2);
+        }
+        
+        .phase-card { 
+            background: var(--bg-panel); 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-lg); 
+            padding: 1.75rem; 
+            margin-bottom: 1.25rem;
+            transition: all 0.2s;
+        }
+        
+        .phase-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(0,176,116,0.2);
+        }
+        
+        .phase-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1.25rem; 
+        }
+        
+        .phase-number { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, var(--primary), #60a5fa);
+            color: #fff; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,176,116,0.4);
+        }
+        
+        .resource-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0.75rem 0; 
+        }
+        
+        .resource-list li { 
+            padding: 0.6rem 0; 
+            padding-left: 1.75rem; 
+            position: relative;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        
+        .resource-list li:before { 
+            content: "→"; 
+            position: absolute; 
+            left: 0; 
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .progress-bar { 
+            width: 100%; 
+            height: 10px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 5px; 
+            overflow: hidden; 
+            margin-top: 0.75rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .progress-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--primary), #60a5fa); 
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(0,176,116,0.5);
+        }
+        
+        .section-title { 
+            font-size: 1.15rem; 
+            font-weight: 600; 
+            margin-bottom: 1.25rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem;
+            color: #fff;
+        }
+        
+        .section-title svg {
+            color: var(--primary);
+        }
+        
+        .empty-state { 
+            text-align: center; 
+            padding: 3rem 1rem; 
+            color: var(--text-muted); 
+        }
+        
+        .empty-state svg { 
+            width: 64px; 
+            height: 64px; 
+            margin-bottom: 1rem; 
+            opacity: 0.3; 
+        }
+        
+        .loading-spinner { 
+            display: inline-block; 
+            width: 20px; 
+            height: 20px; 
+            border: 3px solid rgba(255,255,255,0.3); 
+            border-radius: 50%; 
+            border-top-color: var(--primary); 
+            animation: spin 0.8s linear infinite; 
+        }
+        
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+        
+        /* Setup Card Enhancement */
+        .setup-card {
+            max-width: 700px;
+            margin: 2rem auto;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .setup-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .setup-card .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .role-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300b074' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            cursor: pointer;
+        }
+        
+        .role-select:hover {
+            border-color: var(--primary);
+        }
+        
+        .role-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,176,116,0.1);
+        }
+        
+        .exp-pill {
+            flex: 1;
+            padding: 0.75rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .exp-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .exp-pill.active {
+            border-color: var(--primary);
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), #60a5fa);
+            box-shadow: 0 4px 12px rgba(0,176,116,0.3);
+        }
+        
+        /* Analysis Summary Card */
+        .summary-card {
+            background: linear-gradient(135deg, rgba(0,176,116,0.1), rgba(96,165,250,0.1));
+            border: 1px solid rgba(0,176,116,0.3);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card p {
+            line-height: 1.8;
+            font-size: 1.05rem;
+            color: var(--text-main);
+        }
+        
+        /* Skill Grid Layout */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 968px) {
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons .enable-btn,
+        .action-buttons .btn-secondary {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* History panels in skill gap */
+        .sg-history-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.75rem; }
+        @media(max-width:768px){ .sg-history-grid{ grid-template-columns:1fr; } }
+        .sg-history-panel { background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.25rem; }
+        .sg-history-panel h4 { font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+        .sg-history-panel h4 svg { color:var(--primary); }
+        .sg-hist-row { display:flex; align-items:center; gap:.75rem; padding:.6rem .75rem; border-radius:var(--radius); border:1px solid var(--border-color); margin-bottom:.4rem; background:rgba(255,255,255,.02); cursor:pointer; transition:all .15s; }
+        .sg-hist-row:last-child { margin-bottom:0; }
+        .sg-hist-row:hover { border-color:var(--primary); background:rgba(0,176,116,.05); }
+        .sg-hist-row.selected { border-color:var(--primary); background:rgba(0,176,116,.1); }
+        .sg-hist-score { font-size:1.1rem; font-weight:700; min-width:36px; text-align:center; }
+        .sg-hist-info { flex:1; min-width:0; }
+        .sg-hist-info .r { font-size:.82rem; font-weight:500; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sg-hist-info .d { font-size:.72rem; color:var(--text-muted); }
+        .sg-hist-badge { padding:.2rem .6rem; border-radius:10px; font-size:.68rem; font-weight:600; white-space:nowrap; }
+        .badge-resume { background:rgba(96,165,250,.1); color:#60a5fa; border:1px solid rgba(96,165,250,.2); }
+        .badge-interview { background:rgba(192,132,252,.1); color:#c084fc; border:1px solid rgba(192,132,252,.2); }
+        .sg-hist-empty { font-size:.82rem; color:var(--text-muted); text-align:center; padding:1rem; }
+        .sg-selected-info { margin-top:.75rem; padding:.75rem; background:rgba(0,176,116,.06); border:1px solid rgba(0,176,116,.2); border-radius:var(--radius); font-size:.8rem; color:var(--primary); display:none; }
+        .sg-selected-info.show { display:block; }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-3H8v-3h3v-3h2v3h3v3h-3v3h-2z"/></svg></div>
+            <span>UpSkill AI</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="home.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+            <a href="insights.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Insights & Results</a>
+            <a href="resume.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>Resume Analysis</a>
+            <a href="interview.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>Mock Interview</a>
+            <a href="skill-gap.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Skill Gap Analysis</a>
+            <a href="coach.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Career Coach</a>
+            <a href="profile.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" style="color:var(--text-muted);" id="collapse-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>Collapse Sidebar</a>
+            <a href="#" id="logout-btn" class="nav-item" style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="breadcrumb">UPSKILL AI &nbsp;&gt;&nbsp; <span class="active">Skill Gap Analysis</span></div>
+            <div class="header-right">
+                <div class="search-bar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg><input type="text" placeholder="Search..."></div>
+            </div>
+        </header>
+
+        <!-- Profile Edit Modal -->
+        <div id="profile-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 2rem;">
+            <div style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--radius-lg); max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+                <div style="padding: 2rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0; font-size: 1.5rem; color: #fff;">Edit Profile</h2>
+                    <button onclick="closeProfileModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div style="padding: 2rem;">
+                    <!-- Avatar Upload Section -->
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="position: relative; display: inline-block;">
+                            <img id="modal-avatar" src="" alt="Profile" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover;">
+                            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                            <button onclick="document.getElementById('avatar-upload').click()" style="position: absolute; bottom: 0; right: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--primary); border: 3px solid var(--bg-panel); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">Click the camera icon to upload a new photo</p>
+                    </div>
+
+                    <!-- Form Fields -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600; color: var(--text-main);">Full Name</label>
+                            <input type="text" id="edit-name" placeholder="Enter your name" style="width: 100%; padding: 0.875rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius); color: var(--text-main); font-family: var(--font-family); font-size: 1rem;">
+                        </div>
+
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600; color: var(--text-main);">Email Address</label>
+                            <input type="email" id="edit-email" placeholder="your.email@example.com" disabled style="width: 100%; padding: 0.875rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius); color: var(--text-muted); font-family: var(--font-family); font-size: 1rem; cursor: not-allowed;">
+                            <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">Email cannot be changed</p>
+                        </div>
+
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600; color: var(--text-main);">Location</label>
+                            <input type="text" id="edit-location" placeholder="City, Country" style="width: 100%; padding: 0.875rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius); color: var(--text-main); font-family: var(--font-family); font-size: 1rem;">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button onclick="closeProfileModal()" class="btn-secondary" style="flex: 1; padding: 0.875rem;">Cancel</button>
+                        <button onclick="saveProfile()" class="enable-btn" style="flex: 1; padding: 0.875rem;">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-container">
+            <div class="page-header">
+                <h2 class="page-title">Skill Gap Analysis</h2>
+                <p class="page-subtitle">Discover what skills you need to reach your career goals</p>
+            </div>
+
+            <!-- Analysis Setup -->
+            <div id="setup-section">
+                <div class="setup-card">
+                    <h3>Analyze Your Skills</h3>
+                    <p class="subtitle">Get AI-powered insights on your skill gaps and personalized learning recommendations</p>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Target Role</label>
+                        <select id="target-role" class="role-select">
+                            <option>Software Developer</option>
+                            <option>Frontend Developer</option>
+                            <option>Backend Developer</option>
+                            <option>Full Stack Developer</option>
+                            <option>Data Scientist</option>
+                            <option>Product Manager</option>
+                            <option>DevOps Engineer</option>
+                            <option>UI/UX Designer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Target Level</label>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button class="exp-pill active" data-level="Entry">Entry</button>
+                            <button class="exp-pill" data-level="Mid-level">Mid-level</button>
+                            <button class="exp-pill" data-level="Senior">Senior</button>
+                        </div>
+                    </div>
+                    
+                    <button id="analyze-btn" class="enable-btn" style="width: 100%; padding: 1rem; font-size: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        Analyze My Skills
+                    </button>
+                </div>
+
+                <!-- ── Resume & Interview History for context ── -->
+                <div class="sg-history-grid">
+                    <!-- Resume History -->
+                    <div class="sg-history-panel">
+                        <h4>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            Resume Analyses
+                        </h4>
+                        <div id="sg-resume-list"><div class="sg-hist-empty">Loading...</div></div>
+                        <div class="sg-selected-info" id="sg-resume-selected"></div>
+                    </div>
+                    <!-- Interview History -->
+                    <div class="sg-history-panel">
+                        <h4>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>
+                            Mock Interviews
+                        </h4>
+                        <div id="sg-interview-list"><div class="sg-hist-empty">Loading...</div></div>
+                        <div class="sg-selected-info" id="sg-interview-selected"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div id="results-section" style="display: none;">
+                <div class="analysis-grid">
+                    <div class="stat-card" style="text-align: center;">
+                        <div class="readiness-circle" id="readiness-circle" style="background: conic-gradient(var(--primary) 0deg, var(--primary) 270deg, rgba(255,255,255,0.05) 270deg);">
+                            <span id="readiness-score">0</span>
+                        </div>
+                        <div class="stat-label">Readiness Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: var(--primary);" id="strong-count">0</div>
+                        <div class="stat-label">Strong Skills</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #ef4444;" id="missing-count">0</div>
+                        <div class="stat-label">Skills to Learn</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #fb923c;" id="weak-count">0</div>
+                        <div class="stat-label">Areas to Improve</div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        AI Analysis Summary
+                    </h3>
+                    <p id="analysis-summary"></p>
+                </div>
+
+                <div class="skills-grid">
+                    <div class="stat-card">
+                        <h3 class="section-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Your Strong Skills
+                        </h3>
+                        <div class="skill-list" id="strong-skills"></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="section-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            Skills to Learn
+                        </h3>
+                        <div class="skill-list" id="missing-skills"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card" style="margin-bottom: 2rem;">
+                    <h3 class="section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        </svg>
+                        Personalized Learning Path
+                    </h3>
+                    <button id="generate-path-btn" class="enable-btn" style="margin-bottom: 1.5rem; padding: 0.875rem 1.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        Generate Learning Roadmap
+                    </button>
+                    <div id="learning-path-content"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="new-analysis-btn" class="btn-secondary" style="padding: 0.875rem 1.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                            <polyline points="1 4 1 10 7 10"/>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                        </svg>
+                        New Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/api-v2.js"></script>
+<script src="js/app.js"></script>
+<script src="js/skill-gap.js"></script>
+<script>
+    API.guardPage();
+    API.populateUserInfo();
+
+    // ── Load Resume & Interview history for context ───────────────────────────
+    async function loadSgHistories() {
+        // Resume history
+        try {
+            const res = await API.resume.history();
+            const list = document.getElementById('sg-resume-list');
+            const history = res.history || res.data?.history || [];
+            if (!history.length) {
+                list.innerHTML = '<div class="sg-hist-empty">No resume analyses yet. <a href="resume.html" style="color:var(--primary);">Upload one →</a></div>';
+            } else {
+                list.innerHTML = history.map(r => {
+                    const score = r.ats_score || 0;
+                    const color = score >= 70 ? 'var(--primary)' : score >= 50 ? '#f97316' : '#ef4444';
+                    const date = r.uploaded_at ? new Date(r.uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+                    const role = r.target_role && r.target_role !== '—' ? r.target_role : 'General';
+                    return `<div class="sg-hist-row" onclick="selectResume(this,'${role}',${score})">
+                        <div class="sg-hist-score" style="color:${color};">${score}</div>
+                        <div class="sg-hist-info">
+                            <div class="r">${r.file_name || 'resume.pdf'}</div>
+                            <div class="d">${date}</div>
+                        </div>
+                        <div class="sg-hist-badge badge-resume">${role}</div>
+                    </div>`;
+                }).join('');
+            }
+        } catch(e) {
+            document.getElementById('sg-resume-list').innerHTML = '<div class="sg-hist-empty">Could not load.</div>';
+        }
+
+        // Interview history
+        try {
+            const res = await API.interview.history();
+            const list = document.getElementById('sg-interview-list');
+            const history = (res.data?.history || res.history || []).filter(h => h.status === 'completed');
+            if (!history.length) {
+                list.innerHTML = '<div class="sg-hist-empty">No completed interviews yet. <a href="interview.html" style="color:var(--primary);">Take one →</a></div>';
+            } else {
+                list.innerHTML = history.map(h => {
+                    const score = h.score || 0;
+                    const color = score >= 70 ? 'var(--primary)' : score >= 50 ? '#f97316' : '#ef4444';
+                    const date = h.date ? new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+                    return `<div class="sg-hist-row" onclick="selectInterview(this,'${h.role}',${score},'${h.level||'Entry'}')">
+                        <div class="sg-hist-score" style="color:${color};">${score}</div>
+                        <div class="sg-hist-info">
+                            <div class="r">${h.role || 'Interview'}</div>
+                            <div class="d">${date} · ${h.level || 'Entry'}</div>
+                        </div>
+                        <div class="sg-hist-badge badge-interview">${score}%</div>
+                    </div>`;
+                }).join('');
+            }
+        } catch(e) {
+            document.getElementById('sg-interview-list').innerHTML = '<div class="sg-hist-empty">Could not load.</div>';
+        }
+    }
+
+    function selectResume(el, role, score) {
+        document.querySelectorAll('#sg-resume-list .sg-hist-row').forEach(r => r.classList.remove('selected'));
+        el.classList.add('selected');
+        const info = document.getElementById('sg-resume-selected');
+        info.textContent = `Selected: ${role} resume (ATS: ${score}) — this will be used in your skill gap analysis.`;
+        info.classList.add('show');
+        // Auto-set target role dropdown if it matches
+        const sel = document.getElementById('target-role');
+        if (sel) {
+            for (let opt of sel.options) {
+                if (opt.value.toLowerCase().includes(role.toLowerCase()) || role.toLowerCase().includes(opt.value.toLowerCase())) {
+                    sel.value = opt.value; break;
+                }
+            }
+        }
+    }
+
+    function selectInterview(el, role, score, level) {
+        document.querySelectorAll('#sg-interview-list .sg-hist-row').forEach(r => r.classList.remove('selected'));
+        el.classList.add('selected');
+        const info = document.getElementById('sg-interview-selected');
+        info.textContent = `Selected: ${role} interview (Score: ${score}%, Level: ${level}) — this will be used in your skill gap analysis.`;
+        info.classList.add('show');
+        // Auto-set target role and level
+        const sel = document.getElementById('target-role');
+        if (sel) {
+            for (let opt of sel.options) {
+                if (opt.value.toLowerCase().includes(role.toLowerCase()) || role.toLowerCase().includes(opt.value.toLowerCase())) {
+                    sel.value = opt.value; break;
+                }
+            }
+        }
+        // Auto-set level pill
+        document.querySelectorAll('.exp-pill').forEach(p => {
+            p.classList.toggle('active', p.dataset.level === level);
+        });
+        if (window.skillGapManager) window.skillGapManager.selectedLevel = level;
+    }
+
+    loadSgHistories();
+
+    // Profile Modal Functions
+    function openProfileModal() {
+        const user = API.getUser();
+        if (!user) return;
+        
+        // Populate modal fields
+        document.getElementById('edit-name').value = user.name || '';
+        document.getElementById('edit-email').value = user.email || '';
+        document.getElementById('edit-location').value = user.location || '';
+        document.getElementById('modal-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00b074&color=fff&size=120`;
+        
+        // Show modal
+        document.getElementById('profile-modal').style.display = 'flex';
+    }
+    
+    function closeProfileModal() {
+        document.getElementById('profile-modal').style.display = 'none';
+    }
+    
+    async function saveProfile() {
+        const name = document.getElementById('edit-name').value.trim();
+        const location = document.getElementById('edit-location').value.trim();
+        
+        if (!name) {
+            API.showToast('Name is required', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch('http://localhost:5000/api/profile/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API.getToken()}`
+                },
+                body: JSON.stringify({ name, location })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update local storage
+                const user = API.getUser();
+                user.name = name;
+                user.location = location;
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                // Update UI
+                API.populateUserInfo();
+                document.getElementById('user-location').textContent = location || 'Not set';
+                
+                API.showToast('Profile updated successfully!', 'success');
+                closeProfileModal();
+            } else {
+                throw new Error(data.error || 'Failed to update profile');
+            }
+        } catch (error) {
+            API.showToast('Error: ' + error.message, 'error');
+            console.error('Profile update error:', error);
+        }
+    }
+    
+    // Handle avatar upload
+    document.getElementById('avatar-upload')?.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (!file.type.startsWith('image/')) {
+            API.showToast('Please select an image file', 'warning');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            API.showToast('Image size must be less than 5MB', 'warning');
+            return;
+        }
+        
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('modal-avatar').src = e.target.result;
+            document.querySelectorAll('.user-avatar img').forEach(img => {
+                img.src = e.target.result;
+            });
+        };
+        reader.readAsDataURL(file);
+        
+        API.showToast('Avatar preview updated. Click "Save Changes" to apply.', 'info');
+    });
+    
+    // Load user location
+    const user = API.getUser();
+    if (user && user.location) {
+        document.getElementById('user-location').textContent = user.location;
+    }
+    
+    // Close modal on outside click
+    document.getElementById('profile-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'profile-modal') {
+            closeProfileModal();
+        }
+    });
+    
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); API.auth.logout(); });
+</script>
+</body>
+</html>

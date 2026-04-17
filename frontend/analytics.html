@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - UpSkill AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .analytics-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .trend-line {
+            display: flex;
+            align-items: flex-end;
+            height: 200px;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .trend-bar {
+            flex: 1;
+            background: linear-gradient(to top, #4CAF50, #8BC34A);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .trend-bar:hover {
+            opacity: 0.8;
+        }
+
+        .trend-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
+        }
+
+        .insights-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .insight-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .insight-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+
+        .insight-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .achievement-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .achievement-icon {
+            font-size: 2em;
+        }
+
+        .achievement-info h4 {
+            margin: 0;
+            color: #fff;
+        }
+
+        .achievement-info p {
+            margin: 5px 0 0 0;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .readiness-meter {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .readiness-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-container">
+        <h1>📊 Analytics Dashboard</h1>
+        
+        <div id="loading" class="loading">
+            <p>Loading your analytics...</p>
+        </div>
+
+        <div id="error" class="error-message" style="display: none;"></div>
+
+        <div id="dashboard" style="display: none;">
+            <!-- Overview Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Interviews</div>
+                    <div class="stat-value" id="totalInterviews">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-value" id="avgScore">0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Improvement Rate</div>
+                    <div class="stat-value" id="improvementRate">+0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Achievements</div>
+                    <div class="stat-value" id="achievementCount">0</div>
+                </div>
+            </div>
+
+            <!-- Job Readiness -->
+            <div class="chart-container">
+                <div class="chart-title">🎯 Job Readiness Score</div>
+                <div class="readiness-meter">
+                    <div class="readiness-fill" id="readinessFill" style="width: 0%;">0%</div>
+                </div>
+                <p id="readinessMessage" style="color: rgba(255, 255, 255, 0.8); margin-top: 10px;"></p>
+            </div>
+
+            <!-- Performance Trend -->
+            <div class="chart-container">
+                <div class="chart-title">📈 Interview Performance Trend</div>
+                <div class="trend-line" id="trendChart"></div>
+            </div>
+
+            <!-- Insights -->
+            <div class="insights-section">
+                <div class="insight-card">
+                    <div class="insight-title">💡 Key Insights</div>
+                    <div id="keyInsights"></div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">🎯 Recommendations</div>
+                    <div id="recommendations"></div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-title">📚 Focus Areas</div>
+                    <div id="focusAreas"></div>
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="chart-container">
+                <div class="chart-title">🏆 Achievements</div>
+                <div id="achievements"></div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="chart-container">
+                <div class="chart-title">📝 Recent Activity</div>
+                <div id="recentActivity"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api-v2.js"></script>
+    <script>
+        let analyticsData = null;
+
+        async function loadAnalytics() {
+            try {
+                const response = await API.analytics.getSummary();
+                
+                if (response.success) {
+                    analyticsData = response.data.summary;
+                    renderDashboard();
+                } else {
+                    showError('Failed to load analytics');
+                }
+            } catch (error) {
+                console.error('Analytics error:', error);
+            }
+        }
+
+        function renderDashboard() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+
+            const { dashboard, trends, insights, achievements } = analyticsData;
+
+            // Overview stats
+            document.getElementById('totalInterviews').textContent = dashboard.overview.completed_interviews;
+            document.getElementById('avgScore').textContent = dashboard.overview.average_score + '%';
+            document.getElementById('improvementRate').textContent = 
+                (trends.improvement_rate >= 0 ? '+' : '') + trends.improvement_rate + '%';
+            document.getElementById('achievementCount').textContent = achievements.length;
+
+            // Readiness score
+            const readiness = insights.overall_readiness;
+            const readinessFill = document.getElementById('readinessFill');
+            setTimeout(() => {
+                readinessFill.style.width = readiness.score + '%';
+                readinessFill.textContent = readiness.score + '%';
+            }, 100);
+            document.getElementById('readinessMessage').textContent = readiness.message;
+
+            // Performance trend
+            renderTrendChart(trends.score_trend);
+
+            // Insights
+            renderInsights(insights);
+
+            // Achievements
+            renderAchievements(achievements);
+
+            // Recent activity
+            renderRecentActivity(dashboard);
+        }
+
+        function renderTrendChart(scoreTrend) {
+            const container = document.getElementById('trendChart');
+            container.innerHTML = '';
+
+            if (!scoreTrend || scoreTrend.length === 0) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.6);">No interview data yet</p>';
+                return;
+            }
+
+            const maxScore = Math.max(...scoreTrend.map(s => s.score || 0));
+            
+            scoreTrend.forEach((item, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'trend-bar';
+                const height = (item.score / 100) * 100;
+                bar.style.height = height + '%';
+                bar.title = `${item.role}: ${item.score}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'trend-label';
+                label.textContent = `#${index + 1}`;
+                bar.appendChild(label);
+                
+                container.appendChild(bar);
+            });
+        }
+
+        function renderInsights(insights) {
+            // Key insights
+            const insightsContainer = document.getElementById('keyInsights');
+            insightsContainer.innerHTML = insights.key_insights.map(insight => 
+                `<div class="insight-item">${insight}</div>`
+            ).join('');
+
+            // Recommendations
+            const recsContainer = document.getElementById('recommendations');
+            recsContainer.innerHTML = insights.recommendations.map(rec => 
+                `<div class="insight-item">${rec}</div>`
+            ).join('');
+
+            // Focus areas
+            const focusContainer = document.getElementById('focusAreas');
+            focusContainer.innerHTML = insights.focus_areas.map(area => 
+                `<div class="insight-item">${area}</div>`
+            ).join('');
+        }
+
+        function renderAchievements(achievements) {
+            const container = document.getElementById('achievements');
+            
+            if (achievements.length === 0) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.6);">Complete activities to earn achievements!</p>';
+                return;
+            }
+
+            container.innerHTML = achievements.map(achievement => `
+                <div class="achievement-badge">
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <h4>${achievement.title}</h4>
+                        <p>${achievement.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentActivity(dashboard) {
+            const container = document.getElementById('recentActivity');
+            const activities = [];
+
+            // Add recent interviews
+            dashboard.interview_history.forEach(interview => {
+                activities.push({
+                    type: 'interview',
+                    text: `Completed ${interview.role} interview - Score: ${interview.score}%`,
+                    date: interview.date
+                });
+            });
+
+            // Add skill analyses
+            dashboard.skill_analyses.forEach(analysis => {
+                activities.push({
+                    type: 'analysis',
+                    text: `Skill gap analysis for ${analysis.role} - Readiness: ${analysis.readiness}%`,
+                    date: analysis.date
+                });
+            });
+
+            // Sort by date
+            activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (activities.length === 0) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.6);">No recent activity</p>';
+                return;
+            }
+
+            container.innerHTML = activities.slice(0, 5).map(activity => `
+                <div class="insight-item">
+                    ${activity.type === 'interview' ? '🎤' : '🧠'} ${activity.text}
+                    <br><small style="color: rgba(255,255,255,0.5);">${new Date(activity.date).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Load analytics on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!API.auth.isLoggedIn()) {
+                window.location.href = 'index.html';
+                return;
+            }
+            loadAnalytics();
+        });
+    </script>
+</body>
+</html>

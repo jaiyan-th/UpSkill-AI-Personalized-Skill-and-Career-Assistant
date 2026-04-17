@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- UPDATED: 2026-04-09 19:57 - Skill Gap Analysis link added to sidebar -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>UpSkill AI | Resume Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260409195728">
+    <style>
+        .results-panel { display:none; margin-top:2rem; }
+        .score-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+        .score-box { background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:var(--radius); padding:1rem; text-align:center; }
+        .score-box .val { font-size:2rem; font-weight:600; color:var(--primary); }
+        .score-box .lbl { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-top:.25rem; }
+        .skills-chips { display:flex; flex-wrap:wrap; gap:.5rem; }
+        .chip { background:rgba(0,176,116,.1); color:var(--primary); padding:.3rem .8rem; border-radius:20px; font-size:.8rem; border:1px solid rgba(0,176,116,.2); }
+        .chip.missing { background:rgba(239,68,68,.07); color:#ef4444; border-color:rgba(239,68,68,.2); }
+        .section-title { font-size:.7rem; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); font-weight:600; margin-bottom:.75rem; }
+        .suggestion-item { background:rgba(255,255,255,.02); border:1px solid var(--border-color); border-radius:var(--radius); padding:1rem; margin-bottom:.75rem; font-size:.875rem; line-height:1.6; }
+        .file-picked { background:rgba(0,176,116,.08); border:1px solid rgba(0,176,116,.2); border-radius:var(--radius); padding:.6rem 1rem; font-size:.85rem; color:var(--primary); margin-bottom:.5rem; }
+
+        /* History */
+        .history-section { margin-top:2.5rem; }
+        .history-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+        .history-header h3 { font-size:1rem; font-weight:600; }
+        .history-item { margin-bottom:.6rem; border:1px solid var(--border-color); border-radius:var(--radius); overflow:hidden; transition:border-color .15s; }
+        .history-item.open { border-color:var(--primary); }
+        .history-row { display:flex; align-items:center; gap:1rem; background:rgba(255,255,255,.02); padding:.9rem 1.1rem; cursor:pointer; transition:background .15s; user-select:none; }
+        .history-row:hover { background:rgba(0,176,116,.05); }
+        .history-item.open .history-row { background:rgba(0,176,116,.07); }
+        .history-chevron { color:var(--text-muted); transition:transform .2s; flex-shrink:0; }
+        .history-item.open .history-chevron { transform:rotate(90deg); color:var(--primary); }
+        .history-role-badge { padding:.25rem .7rem; border-radius:12px; font-size:.72rem; font-weight:600; background:rgba(96,165,250,.1); color:#60a5fa; border:1px solid rgba(96,165,250,.2); white-space:nowrap; }
+        .history-score { font-size:1.3rem; font-weight:700; min-width:42px; text-align:center; }
+        .history-meta { flex:1; min-width:0; }
+        .history-meta .fname { font-size:.875rem; font-weight:500; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .history-meta .date { font-size:.75rem; color:var(--text-muted); margin-top:.15rem; }
+        .history-stats { display:flex; gap:1.25rem; }
+        .history-stat { text-align:center; }
+        .history-stat .v { font-size:.95rem; font-weight:600; color:var(--text-main); }
+        .history-stat .l { font-size:.62rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:.04em; }
+        .history-empty { text-align:center; padding:2rem; color:var(--text-muted); font-size:.875rem; }
+        /* Expand panel */
+        .history-detail { display:none; padding:1.25rem 1.25rem 1.5rem; border-top:1px solid var(--border-color); background:rgba(0,0,0,.15); }
+        .history-item.open .history-detail { display:block; }
+        .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem; }
+        @media(max-width:640px){ .detail-grid{ grid-template-columns:1fr; } }
+        .detail-section h4 { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); font-weight:600; margin-bottom:.6rem; }
+        .detail-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+        .detail-chip { padding:.22rem .65rem; border-radius:12px; font-size:.75rem; }
+        .chip-skill { background:rgba(0,176,116,.1); color:var(--primary); border:1px solid rgba(0,176,116,.2); }
+        .chip-matched { background:rgba(96,165,250,.1); color:#60a5fa; border:1px solid rgba(96,165,250,.2); }
+        .chip-missing { background:rgba(239,68,68,.08); color:#ef4444; border:1px solid rgba(239,68,68,.2); }
+        .detail-suggestion { font-size:.82rem; color:var(--text-muted); padding:.55rem .8rem; background:rgba(255,255,255,.02); border:1px solid var(--border-color); border-radius:var(--radius); margin-bottom:.4rem; line-height:1.5; }
+        .detail-suggestion:last-child { margin-bottom:0; }
+        .breakdown-row { display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem; }
+        .breakdown-row:last-child { margin-bottom:0; }
+        .breakdown-label { font-size:.78rem; color:var(--text-muted); width:140px; flex-shrink:0; }
+        .breakdown-bar { flex:1; height:6px; background:rgba(255,255,255,.06); border-radius:3px; overflow:hidden; }
+        .breakdown-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--primary),#60a5fa); }
+        .breakdown-val { font-size:.78rem; font-weight:600; color:#fff; width:32px; text-align:right; flex-shrink:0; }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-3H8v-3h3v-3h2v3h3v3h-3v3h-2z"/></svg></div>
+            <span>UpSkill AI</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="home.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+            <a href="insights.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Insights & Results</a>
+            <a href="resume.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>Resume Analysis</a>
+            <a href="interview.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>Mock Interview</a>
+            <a href="skill-gap.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Skill Gap Analysis</a>
+            <a href="coach.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Career Coach</a>
+            <a href="profile.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="collapse-btn" class="nav-item" style="color:var(--text-muted);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Collapse Sidebar</a>
+            <a href="#" id="logout-btn" class="nav-item" style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="breadcrumb">UPSKILL AI &nbsp;&gt;&nbsp; <span class="active">Resume</span></div>
+            <div class="header-right">
+                <div class="search-bar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg><input type="text" placeholder="Search resources..."></div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="page-header"><h2 class="page-title">Resume Analyzer</h2><p class="page-subtitle">Upload your resume and get AI-powered ATS scoring and personalized feedback.</p></div>
+
+            <div class="widget-panel">
+                <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
+                <h3 style="font-size:1.1rem;font-weight:500;margin-bottom:.5rem;">Upload your resume</h3>
+                <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:1.5rem;">PDF files up to 5MB</p>
+
+                <div class="form-group-center">
+                    <label style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.5rem;">Target Role</label>
+                    <input type="text" id="target-role" class="form-input" value="Software Engineer" style="margin-bottom:1rem;">
+
+                    <input type="file" id="file-input" accept=".pdf" style="display:none;">
+                    <div id="file-picked" style="display:none;" class="file-picked"></div>
+                    <button id="select-file-btn" class="btn-secondary" style="margin-bottom:1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Select File
+                    </button>
+                    <button id="analyze-btn" class="btn-primary btn-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-2 2.5h3L12 7"/><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/></svg>
+                        Analyze Resume
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-panel" id="results-panel">
+                <h3 style="font-size:1.2rem;font-weight:600;margin-bottom:1.5rem;">Analysis Results</h3>
+
+                <div class="score-grid" id="score-grid"></div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+                    <div class="widget-panel" style="align-items:stretch;padding:1.5rem;border-style:solid;">
+                        <p class="section-title">Skills Detected</p>
+                        <div id="skills-found" class="skills-chips"></div>
+                    </div>
+                    <div class="widget-panel" style="align-items:stretch;padding:1.5rem;border-style:solid;">
+                        <p class="section-title">Missing Skills</p>
+                        <div id="skills-missing" class="skills-chips"></div>
+                    </div>
+                </div>
+
+                <div class="widget-panel" style="align-items:stretch;padding:1.5rem;border-style:solid;">
+                    <p class="section-title">AI Suggestions</p>
+                    <div id="suggestions-list"></div>
+                </div>
+            </div>
+
+            <!-- ── Analysis History ── -->
+            <div class="history-section">
+                <div class="history-header">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="vertical-align:middle;margin-right:.4rem;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Analysis History
+                    </h3>
+                    <span id="history-count" style="font-size:.78rem;color:var(--text-muted);"></span>
+                </div>
+                <div id="history-list"><div class="history-empty">Loading history...</div></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/api-v2.js"></script>
+<script src="js/app.js"></script>
+<script>
+    API.guardPage();
+    API.populateUserInfo();
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); API.auth.logout(); });
+
+    let selectedFile = null;
+
+    document.getElementById('select-file-btn').addEventListener('click', () => {
+        document.getElementById('file-input').click();
+    });
+
+    document.getElementById('file-input').addEventListener('change', (e) => {
+        selectedFile = e.target.files[0];
+        if (selectedFile) {
+            const pickedEl = document.getElementById('file-picked');
+            pickedEl.textContent = `✓ ${selectedFile.name} (${(selectedFile.size/1024/1024).toFixed(2)} MB)`;
+            pickedEl.style.display = 'block';
+        }
+    });
+
+    // ── Load history ──────────────────────────────────────────────────────────
+    async function loadHistory() {
+        try {
+            const res = await API.resume.history();
+            const list = document.getElementById('history-list');
+            const countEl = document.getElementById('history-count');
+
+            if (!res.success) { list.innerHTML = '<div class="history-empty">Could not load history.</div>'; return; }
+
+            // Backend returns { success, history, stats } — history is top-level
+            const history = res.history || res.data?.history || [];
+            countEl.textContent = history.length ? `${history.length} record${history.length > 1 ? 's' : ''}` : '';
+
+            if (history.length === 0) {
+                list.innerHTML = '<div class="history-empty">No analyses yet. Upload your first resume above.</div>';
+                return;
+            }
+
+            list.innerHTML = history.map(r => {
+                const score = r.ats_score || 0;
+                const color = score >= 70 ? 'var(--primary)' : score >= 50 ? '#f97316' : '#ef4444';
+                const date = r.uploaded_at
+                    ? new Date(r.uploaded_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                    : '—';
+                const role = r.target_role && r.target_role !== '—' ? r.target_role : 'General';
+
+                // Build breakdown bars
+                const bd = r.breakdown || {};
+                const breakdownHtml = Object.keys(bd).length ? `
+                    <div style="margin-bottom:1.25rem;">
+                        <h4>Score Breakdown</h4>
+                        ${Object.entries(bd).map(([k,v]) => `
+                            <div class="breakdown-row">
+                                <span class="breakdown-label">${k.replace(/_/g,' ')}</span>
+                                <div class="breakdown-bar"><div class="breakdown-fill" style="width:${v}%"></div></div>
+                                <span class="breakdown-val">${v}</span>
+                            </div>`).join('')}
+                    </div>` : '';
+
+                // Skills
+                const skillsHtml = (r.skills || []).length ? `
+                    <div class="detail-section">
+                        <h4>Skills Detected (${r.skills.length})</h4>
+                        <div class="detail-chips">
+                            ${r.skills.slice(0,20).map(s => `<span class="detail-chip chip-skill">${s}</span>`).join('')}
+                        </div>
+                    </div>` : '';
+
+                // Missing keywords
+                const missingHtml = (r.missing_kw_list || []).length ? `
+                    <div class="detail-section">
+                        <h4>Missing Keywords (${r.missing_kw_list.length})</h4>
+                        <div class="detail-chips">
+                            ${r.missing_kw_list.slice(0,20).map(s => `<span class="detail-chip chip-missing">${s}</span>`).join('')}
+                        </div>
+                    </div>` : '';
+
+                // Matched keywords
+                const matchedHtml = (r.matched_kw_list || []).length ? `
+                    <div class="detail-section">
+                        <h4>Matched Keywords (${r.matched_kw_list.length})</h4>
+                        <div class="detail-chips">
+                            ${r.matched_kw_list.slice(0,20).map(s => `<span class="detail-chip chip-matched">${s}</span>`).join('')}
+                        </div>
+                    </div>` : '';
+
+                // Suggestions
+                const suggestionsHtml = (r.suggestions || []).length ? `
+                    <div style="margin-top:1.25rem;">
+                        <h4 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;margin-bottom:.6rem;">AI Suggestions</h4>
+                        ${r.suggestions.map(s => `<div class="detail-suggestion">${s}</div>`).join('')}
+                    </div>` : '';
+
+                return `
+                <div class="history-item" id="hist-${r.id}">
+                    <div class="history-row" onclick="toggleHistory('hist-${r.id}')">
+                        <div class="history-score" style="color:${color};">${score}</div>
+                        <div class="history-meta">
+                            <div class="fname">${r.file_name || 'resume.pdf'}</div>
+                            <div class="date">${date}</div>
+                        </div>
+                        <div class="history-role-badge">${role}</div>
+                        <div class="history-stats">
+                            <div class="history-stat">
+                                <div class="v">${r.skills_count || 0}</div>
+                                <div class="l">Skills</div>
+                            </div>
+                            <div class="history-stat">
+                                <div class="v" style="color:var(--primary);">${r.matched_keywords || 0}</div>
+                                <div class="l">Matched</div>
+                            </div>
+                            <div class="history-stat">
+                                <div class="v" style="color:#ef4444;">${r.missing_keywords || 0}</div>
+                                <div class="l">Missing</div>
+                            </div>
+                        </div>
+                        <div class="history-chevron">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                        </div>
+                    </div>
+                    <div class="history-detail">
+                        ${breakdownHtml}
+                        <div class="detail-grid">
+                            ${skillsHtml}
+                            ${missingHtml}
+                            ${matchedHtml}
+                        </div>
+                        ${suggestionsHtml}
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            console.error('History error:', e);
+            document.getElementById('history-list').innerHTML = '<div class="history-empty">Could not load history.</div>';
+        }
+    }
+
+    function toggleHistory(id) {
+        const item = document.getElementById(id);
+        if (item) item.classList.toggle('open');
+    }
+
+    loadHistory();
+
+    // ── Analyze ───────────────────────────────────────────────────────────────
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+        if (!selectedFile) { 
+            API.showToast('Please select a PDF file first.', 'warning'); 
+            return; 
+        }
+        
+        const btn = document.getElementById('analyze-btn');
+        API.setLoading(btn, true, 'Analyzing...');
+        
+        try {
+            const targetRole = document.getElementById('target-role').value.trim() || 'General';
+            const response = await API.resume.upload(selectedFile, targetRole);
+            
+            if (response.success) {
+                const data = response.data;
+                const atsScore = data.ats_score || 0;
+
+                document.getElementById('score-grid').innerHTML = `
+                    <div class="score-box"><div class="val" style="color:${atsScore>=70?'var(--primary)':atsScore>=50?'#f97316':'#ef4444'}">${atsScore}</div><div class="lbl">ATS Score</div></div>
+                    <div class="score-box"><div class="val">${data.matched_keywords?.length || 0}</div><div class="lbl">Keywords Matched</div></div>
+                    <div class="score-box"><div class="val">${data.suggestions?.length || 0}</div><div class="lbl">Improvements</div></div>
+                `;
+
+                const skills = data.extracted_data?.skills || [];
+                const skillNames = skills.map(s => typeof s === 'string' ? s : (s.name || s));
+                document.getElementById('skills-found').innerHTML = skillNames.slice(0,20).map(s => `<span class="chip">${s}</span>`).join('') 
+                    || '<span style="color:var(--text-muted);font-size:.85rem;">None detected</span>';
+
+                const missing = data.missing_keywords || [];
+                document.getElementById('skills-missing').innerHTML = missing.slice(0,20).map(s => `<span class="chip missing">${s}</span>`).join('') 
+                    || '<span style="color:var(--text-muted);font-size:.85rem;">None — great job!</span>';
+
+                const suggestions = data.suggestions || [];
+                document.getElementById('suggestions-list').innerHTML = suggestions.length 
+                    ? suggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('') 
+                    : '<div class="suggestion-item">Resume looks good! Consider tailoring it further to the target role.</div>';
+
+                document.getElementById('results-panel').style.display = 'block';
+                document.getElementById('results-panel').scrollIntoView({ behavior:'smooth', block:'start' });
+                API.showToast('Resume analyzed successfully!', 'success');
+
+                // Refresh history to show the new entry
+                loadHistory();
+            } else {
+                API.showToast(response.error?.message || 'Analysis failed', 'error');
+            }
+        } catch(err) {
+            console.error('Analysis failed:', err);
+            API.showToast(err.message || 'Analysis failed', 'error');
+        } finally {
+            API.setLoading(btn, false);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API v2 Test Page</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #00b074; }
+        h2 { color: #333; margin-top: 0; }
+        button {
+            background: #00b074;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #009060; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #00b074; }
+        .error { color: #ef4444; }
+        .info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API v2 Test Page</h1>
+    <p>Test the new production-ready API client with retry logic, timeout handling, and structured responses.</p>
+
+    <!-- Auth Tests -->
+    <div class="test-section">
+        <h2>Authentication Tests</h2>
+        
+        <div>
+            <h3>Register</h3>
+            <input type="text" id="reg-name" placeholder="Name" value="Test User">
+            <input type="email" id="reg-email" placeholder="Email" value="test@example.com">
+            <input type="password" id="reg-password" placeholder="Password" value="password123">
+            <button onclick="testRegister()">Test Register</button>
+            <div id="reg-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Login</h3>
+            <input type="email" id="login-email" placeholder="Email" value="test@example.com">
+            <input type="password" id="login-password" placeholder="Password" value="password123">
+            <button onclick="testLogin()">Test Login</button>
+            <button onclick="testLoginInvalid()">Test Invalid Login</button>
+            <div id="login-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Get Profile</h3>
+            <button onclick="testGetProfile()">Test Get Profile</button>
+            <button onclick="testGetProfileNoToken()">Test Without Token</button>
+            <div id="profile-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Logout</h3>
+            <button onclick="testLogout()">Test Logout</button>
+            <div id="logout-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Error Handling Tests -->
+    <div class="test-section">
+        <h2>Error Handling Tests</h2>
+        
+        <div>
+            <h3>Validation Errors</h3>
+            <button onclick="testValidationError()">Test Missing Fields</button>
+            <button onclick="testInvalidEmail()">Test Invalid Email</button>
+            <div id="validation-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Network Errors</h3>
+            <button onclick="testNetworkError()">Test Network Error (Stop Backend First)</button>
+            <div id="network-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Utility Tests -->
+    <div class="test-section">
+        <h2>Utility Tests</h2>
+        
+        <div>
+            <button onclick="testToast('success')">Test Success Toast</button>
+            <button onclick="testToast('error')">Test Error Toast</button>
+            <button onclick="testToast('info')">Test Info Toast</button>
+            <button onclick="testToast('warning')">Test Warning Toast</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button id="loading-btn" onclick="testLoading()">Test Loading State</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button onclick="testTokenManagement()">Test Token Management</button>
+            <div id="token-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Status Display -->
+    <div class="test-section">
+        <h2>Current Status</h2>
+        <div id="status" class="result">
+            <div>Logged In: <span id="status-logged-in">-</span></div>
+            <div>Token: <span id="status-token">-</span></div>
+            <div>User: <span id="status-user">-</span></div>
+        </div>
+        <button onclick="updateStatus()">Refresh Status</button>
+    </div>
+
+    <script src="js/api-v2.js"></script>
+    <script>
+        // Helper to display results
+        function showResult(elementId, data, isError = false) {
+            const el = document.getElementById(elementId);
+            el.style.display = 'block';
+            el.innerHTML = `<pre class="${isError ? 'error' : 'success'}">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // Update status display
+        function updateStatus() {
+            document.getElementById('status-logged-in').textContent = API.auth.isLoggedIn() ? 'Yes' : 'No';
+            document.getElementById('status-token').textContent = API.getToken() ? API.getToken().substring(0, 20) + '...' : 'None';
+            document.getElementById('status-user').textContent = API.getUser() ? JSON.stringify(API.getUser()) : 'None';
+        }
+
+        // Auth Tests
+        async function testRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            try {
+                const response = await API.auth.register(name, email, password);
+                showResult('reg-result', response);
+                updateStatus();
+            } catch (error) {
+                showResult('reg-result', { error: error.message, code: error.code }, true);
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await API.auth.login(email, password);
+                showResult('login-result', response);
+                updateStatus();
+            } catch (error) {
+                showResult('login-result', { error: error.message, code: error.code }, true);
+            }
+        }
+
+        async function testLoginInvalid() {
+            try {
+                const response = await API.auth.login('test@example.com', 'wrongpassword');
+                showResult('login-result', response);
+            } catch (error) {
+                showResult('login-result', { error: error.message, code: error.code }, true);
+            }
+        }
+
+        async function testGetProfile() {
+            try {
+                const response = await API.auth.me();
+                showResult('profile-result', response);
+            } catch (error) {
+                showResult('profile-result', { error: error.message, code: error.code }, true);
+            }
+        }
+
+        async function testGetProfileNoToken() {
+            // Temporarily remove token
+            const token = API.getToken();
+            localStorage.removeItem('upskill_token');
+            
+            try {
+                const response = await API.auth.me();
+                showResult('profile-result', response);
+            } catch (error) {
+                showResult('profile-result', { error: error.message, code: error.code }, true);
+            } finally {
+                // Restore token
+                if (token) localStorage.setItem('upskill_token', token);
+            }
+        }
+
+        function testLogout() {
+            const before = { token: API.getToken(), user: API.getUser() };
+            // Don't actually logout (would redirect), just show what would happen
+            showResult('logout-result', { 
+                message: 'Logout would clear token and redirect to index.html',
+                before: before
+            });
+        }
+
+        // Error Tests
+        async function testValidationError() {
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test@example.com' }) // Missing name and password
+                }).then(r => r.json());
+                showResult('validation-result', response, !response.success);
+            } catch (error) {
+                showResult('validation-result', { error: error.message }, true);
+            }
+        }
+
+        async function testInvalidEmail() {
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name: 'Test',
+                        email: 'invalid-email',
+                        password: 'password123'
+                    })
+                }).then(r => r.json());
+                showResult('validation-result', response, !response.success);
+            } catch (error) {
+                showResult('validation-result', { error: error.message }, true);
+            }
+        }
+
+        async function testNetworkError() {
+            showResult('network-result', { message: 'Testing network error with retry logic...' });
+            
+            try {
+                const response = await API.auth.login('test@example.com', 'password123');
+                showResult('network-result', response);
+            } catch (error) {
+                showResult('network-result', { 
+                    error: error.message, 
+                    code: error.code,
+                    note: 'Check console for retry attempts'
+                }, true);
+            }
+        }
+
+        // Utility Tests
+        function testToast(type) {
+            const messages = {
+                success: 'This is a success message!',
+                error: 'This is an error message!',
+                info: 'This is an info message!',
+                warning: 'This is a warning message!'
+            };
+            API.showToast(messages[type], type);
+        }
+
+        async function testLoading() {
+            const btn = document.getElementById('loading-btn');
+            API.setLoading(btn, true, 'Loading...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            API.setLoading(btn, false);
+        }
+
+        function testTokenManagement() {
+            const result = {
+                getToken: API.getToken(),
+                getUser: API.getUser(),
+                isLoggedIn: API.auth.isLoggedIn()
+            };
+            showResult('token-result', result);
+        }
+
+        // Initialize
+        updateStatus();
+        setInterval(updateStatus, 5000); // Auto-refresh every 5 seconds
+    </script>
+</body>
+</html>

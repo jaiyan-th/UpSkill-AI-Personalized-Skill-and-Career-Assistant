@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- UPDATED: 2026-04-09 19:57 - Skill Gap Analysis link added to sidebar -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>UpSkill AI | Mock Interview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260409195728">
+    <style>
+        /* ── Setup Layout ── */
+        .interview-setup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+            margin-top: 1.5rem;
+        }
+        .setup-left { display: flex; flex-direction: column; gap: 1.5rem; }
+
+        /* Role dropdown */
+        .role-select {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            cursor: pointer;
+        }
+        .role-select:focus { outline: none; border-color: var(--primary); }
+        .role-select option { background-color: #141c24; }
+
+        /* Experience pills */
+        .exp-pills { display: flex; gap: 0.5rem; }
+        .exp-pill {
+            flex: 1;
+            padding: 0.55rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .exp-pill.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(0,176,116,0.08);
+        }
+
+        /* Proctoring notice */
+        .proctor-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            background-color: rgba(0,176,116,0.06);
+            border: 1px solid rgba(0,176,116,0.2);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+        .proctor-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background-color: var(--primary);
+            flex-shrink: 0; margin-top: 3px;
+            box-shadow: 0 0 0 3px rgba(0,176,116,0.2);
+        }
+        .proctor-notice h4 { font-size: 0.875rem; font-weight: 500; color: var(--primary); margin-bottom: 0.3rem; }
+        .proctor-notice p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* Camera panel */
+        .camera-panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            aspect-ratio: 16/10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .camera-panel.active .camera-icon-wrap,
+        .camera-panel.active .camera-status {
+            display: none;
+        }
+        .camera-panel.active #camera-preview {
+            display: block !important;
+        }
+        .camera-icon-wrap { color: var(--text-muted); }
+        .camera-icon-wrap svg { width: 48px; height: 48px; opacity: 0.4; }
+        .camera-status { font-size: 0.8rem; color: var(--text-muted); }
+        .camera-controls {
+            position: absolute; bottom: 1.25rem;
+            display: flex; gap: 0.75rem;
+        }
+        .ctrl-circle {
+            width: 38px; height: 38px; border-radius: 50%;
+            background-color: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #ef4444;
+            transition: all 0.2s ease;
+        }
+        .ctrl-circle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .ctrl-circle svg { width: 16px; height: 16px; }
+
+        /* Enable button */
+        .enable-btn {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            gap: 0.6rem;
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            padding: 0.85rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            font-family: var(--font-family);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .enable-btn:hover { background-color: var(--primary-hover); }
+        .enable-btn svg { width: 18px; height: 18px; }
+
+        /* ── Active Interview Layout ── */
+        .active-interview { display: none; }
+        .active-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        .question-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+        }
+        .q-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); font-weight: 600; margin-bottom: 1rem; }
+        .q-text { font-size: 1.05rem; line-height: 1.7; font-weight: 400; }
+        .ai-feedback {
+            display: none;
+            margin-top: 1.25rem;
+            background: rgba(96,165,250,0.06);
+            border: 1px solid rgba(96,165,250,0.2);
+            border-radius: var(--radius);
+            padding: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        .answer-panel {
+            display: flex; flex-direction: column; gap: 1rem;
+        }
+        .answer-textarea {
+            width: 100%; background: var(--bg-input);
+            border: 1px solid var(--border-color); border-radius: var(--radius);
+            color: var(--text-main); font-family: var(--font-family);
+            font-size: 0.9rem; padding: 1rem; resize: vertical;
+            min-height: 160px; line-height: 1.6;
+        }
+        .answer-textarea:focus { outline: none; border-color: var(--primary); }
+        .answer-actions { display: flex; gap: 0.75rem; }
+        .progress-bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .q-dots { display: flex; gap: 0.4rem; }
+        .q-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-color); transition: background 0.2s; }
+        .q-dot.done { background: var(--primary); }
+        .q-dot.current { background: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.3); }
+
+        /* Evaluation */
+        .eval-section { display: none; margin-top: 2rem; }
+        .eval-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .eval-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1rem; text-align: center; }
+        .eval-card .val { font-size: 1.7rem; font-weight: 600; }
+        .eval-card .lbl { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-top: 0.25rem; }
+        .feedback-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+        .feedback-item { font-size: 0.875rem; padding: 0.75rem 1rem; border-radius: var(--radius); line-height: 1.5; }
+        .feedback-item.strength { background: rgba(0,176,116,0.06); border: 1px solid rgba(0,176,116,0.15); }
+        .feedback-item.weakness { background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.15); }
+        .section-heading { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.6rem; }
+
+        /* Interview History */
+        .iv-history-section { margin-top: 2.5rem; }
+        .iv-history-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+        .iv-history-header h3 { font-size:1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; }
+        .iv-row { display:flex; align-items:center; gap:1rem; background:rgba(255,255,255,.02); border:1px solid var(--border-color); border-radius:var(--radius); padding:.85rem 1.1rem; margin-bottom:.5rem; transition:border-color .15s; }
+        .iv-row:hover { border-color:var(--primary); background:rgba(0,176,116,.04); }
+        .iv-score { font-size:1.25rem; font-weight:700; min-width:40px; text-align:center; }
+        .iv-meta { flex:1; }
+        .iv-meta .role { font-size:.875rem; font-weight:500; color:var(--text-main); }
+        .iv-meta .date { font-size:.75rem; color:var(--text-muted); margin-top:.1rem; }
+        .iv-badge { padding:.25rem .7rem; border-radius:12px; font-size:.72rem; font-weight:600; background:rgba(192,132,252,.1); color:#c084fc; border:1px solid rgba(192,132,252,.2); white-space:nowrap; }
+        .iv-stats { display:flex; gap:1.25rem; }
+        .iv-stat { text-align:center; }
+        .iv-stat .v { font-size:.9rem; font-weight:600; }
+        .iv-stat .l { font-size:.6rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:.04em; }
+        .iv-empty { text-align:center; padding:2rem; color:var(--text-muted); font-size:.875rem; }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-3H8v-3h3v-3h2v3h3v3h-3v3h-2z"/></svg></div>
+            <span>UpSkill AI</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="home.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+            <a href="insights.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Insights & Results</a>
+            <a href="resume.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>Resume Analysis</a>
+            <a href="interview.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>Mock Interview</a>
+            <a href="skill-gap.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Skill Gap Analysis</a>
+            <a href="coach.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Career Coach</a>
+            <a href="profile.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" style="color:var(--text-muted);" id="collapse-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Collapse Sidebar</a>
+            <a href="#" id="logout-btn" class="nav-item" style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="breadcrumb">UPSKILL AI &nbsp;&gt;&nbsp; <span class="active">Interview</span></div>
+            <div class="header-right">
+                <div class="search-bar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg><input type="text" placeholder="Search resources..."></div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <!-- ═══ SETUP VIEW ═══ -->
+            <div id="setup-view">
+                <div class="page-header">
+                    <h2 class="page-title">Mock Interview</h2>
+                    <p class="page-subtitle">Practice with our AI interviewer and get real-time feedback.</p>
+                </div>
+
+                <div class="interview-setup-grid">
+                    <!-- Left column -->
+                    <div class="setup-left">
+                        <div>
+                            <label class="section-heading" style="display:block; margin-bottom:.5rem;">TARGET ROLE</label>
+                            <select id="role-select" class="role-select">
+                                <option>Software Developer</option>
+                                <option>Frontend Developer</option>
+                                <option>Backend Developer</option>
+                                <option>Full Stack Developer</option>
+                                <option>Data Scientist</option>
+                                <option>Product Manager</option>
+                                <option>DevOps Engineer</option>
+                                <option>UI/UX Designer</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="section-heading" style="display:block; margin-bottom:.5rem;">EXPERIENCE LEVEL</label>
+                            <div class="exp-pills">
+                                <button class="exp-pill active" data-level="Entry">Entry</button>
+                                <button class="exp-pill" data-level="Mid-level">Mid-level</button>
+                                <button class="exp-pill" data-level="Senior">Senior</button>
+                            </div>
+                        </div>
+
+                        <div class="proctor-notice">
+                            <div class="proctor-dot"></div>
+                            <div>
+                                <h4>AI Proctoring Enabled</h4>
+                                <p>Our system monitors face presence and tab switching to ensure interview integrity. No video is recorded or stored.</p>
+                            </div>
+                        </div>
+
+                        <button class="enable-btn" id="start-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>
+                            Enable Camera &amp; Mic
+                        </button>
+                    </div>
+
+                    <!-- Right column — camera preview -->
+                    <div class="camera-panel" id="camera-panel">
+                        <video id="camera-preview" autoplay playsinline style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius-lg); display:none;"></video>
+                        <div class="camera-icon-wrap">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/><line x1="2" y1="2" x2="22" y2="22" stroke="currentColor"/></svg>
+                        </div>
+                        <span class="camera-status">Camera is off</span>
+                        <div class="camera-controls">
+                            <div class="ctrl-circle" id="mic-toggle" title="Microphone off">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                            </div>
+                            <div class="ctrl-circle" id="camera-toggle" title="Camera off">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ ACTIVE INTERVIEW ═══ -->
+            <div id="interview-view" class="active-interview">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                    <div>
+                        <span style="font-size:.7rem; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); font-weight:600;">Question <span id="q-num">1</span> of <span id="q-total">5</span></span>
+                        <div class="q-dots" id="q-dots" style="margin-top:.5rem;"></div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <div id="timer-display" style="font-size:1.1rem; font-weight:600; color:var(--primary); font-variant-numeric:tabular-nums;">5:00</div>
+                        <button id="end-btn" class="btn-secondary" style="font-size:.8rem; padding:.45rem 1rem;">End Interview</button>
+                    </div>
+                </div>
+
+                <div class="active-grid">
+                    <div class="question-panel">
+                        <p class="q-label">Current Question</p>
+                        <p class="q-text" id="q-text">Loading question...</p>
+                        <div class="ai-feedback" id="ai-feedback"></div>
+                    </div>
+                    <div class="answer-panel">
+                        <div>
+                            <p class="q-label" style="margin-bottom:.5rem;">Your Answer</p>
+                            <textarea class="answer-textarea" id="answer-input" placeholder="Type your answer here..."></textarea>
+                        </div>
+                        <div class="answer-actions">
+                            <button class="btn-secondary" id="voice-btn" style="padding:.7rem 1rem; display:inline-flex; align-items:center; gap:.5rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                    <line x1="12" x2="12" y1="19" y2="22"/>
+                                </svg>
+                                Voice Input
+                            </button>
+                            <button class="enable-btn" id="submit-btn" style="flex:1; padding:.7rem;">Submit Answer</button>
+                            <button class="btn-secondary" id="skip-btn" style="padding:.7rem 1.25rem;">Skip</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ EVALUATION ═══ -->
+            <div id="eval-section" class="eval-section">
+                <h3 style="font-size:1.2rem; font-weight:600; margin-bottom:1.5rem;">Interview Results</h3>
+                <div class="eval-grid" id="eval-grid"></div>
+                <div style="margin-bottom:1.25rem;">
+                    <p class="section-heading">Strengths</p>
+                    <div class="feedback-list" id="eval-strengths"></div>
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <p class="section-heading">Areas to Improve</p>
+                    <div class="feedback-list" id="eval-weaknesses"></div>
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <a href="skill-gap.html" class="enable-btn" style="text-decoration:none; max-width:280px;">Generate Learning Roadmap</a>
+                    <button id="retry-btn" class="btn-secondary" style="padding:.7rem 1.5rem;">Try Again</button>
+                </div>
+            </div>
+
+            <!-- ═══ INTERVIEW HISTORY ═══ -->
+            <div class="iv-history-section">
+                <div class="iv-history-header">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Interview History
+                    </h3>
+                    <span id="iv-history-count" style="font-size:.78rem;color:var(--text-muted);"></span>
+                </div>
+                <div id="iv-history-list"><div class="iv-empty">Loading history...</div></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/api-v2.js"></script>
+<script src="js/app.js"></script>
+<script src="js/interview.js"></script>
+<script>
+    API.guardPage();
+    API.populateUserInfo();
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); API.auth.logout(); });
+
+    async function loadInterviewHistory() {
+        try {
+            const res = await API.interview.history();
+            const list = document.getElementById('iv-history-list');
+            const countEl = document.getElementById('iv-history-count');
+            const history = (res.data?.history || res.history || []).filter(h => h.status === 'completed');
+            countEl.textContent = history.length ? `${history.length} completed` : '';
+            if (!history.length) {
+                list.innerHTML = '<div class="iv-empty">No completed interviews yet. Start your first above.</div>';
+                return;
+            }
+            list.innerHTML = history.map(h => {
+                const score = h.score || 0;
+                const color = score >= 70 ? 'var(--primary)' : score >= 50 ? '#f97316' : '#ef4444';
+                const date = h.date ? new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+                return `
+                <div class="iv-row">
+                    <div class="iv-score" style="color:${color};">${score}</div>
+                    <div class="iv-meta">
+                        <div class="role">${h.role || 'Interview'}</div>
+                        <div class="date">${date}</div>
+                    </div>
+                    <div class="iv-badge">${h.level || 'Entry'}</div>
+                    <div class="iv-stats">
+                        <div class="iv-stat"><div class="v" style="color:${color};">${score}%</div><div class="l">Score</div></div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            document.getElementById('iv-history-list').innerHTML = '<div class="iv-empty">Could not load history.</div>';
+        }
+    }
+    loadInterviewHistory();
+</script>
+</body>
+</html>

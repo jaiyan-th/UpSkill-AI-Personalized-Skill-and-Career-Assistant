@@ -1,0 +1,70 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/health",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf))",
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/register",
+      "dest": "frontend/register.html"
+    },
+    {
+      "src": "/home",
+      "dest": "frontend/home.html"
+    },
+    {
+      "src": "/resume",
+      "dest": "frontend/resume.html"
+    },
+    {
+      "src": "/interview",
+      "dest": "frontend/interview.html"
+    },
+    {
+      "src": "/skill-gap",
+      "dest": "frontend/skill-gap.html"
+    },
+    {
+      "src": "/coach",
+      "dest": "frontend/coach.html"
+    },
+    {
+      "src": "/analytics",
+      "dest": "frontend/analytics.html"
+    },
+    {
+      "src": "/insights",
+      "dest": "frontend/insights.html"
+    },
+    {
+      "src": "/profile",
+      "dest": "frontend/profile.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/index.html"
+    }
+  ]
+}

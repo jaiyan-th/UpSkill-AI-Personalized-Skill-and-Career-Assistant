@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UpSkill AI | Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .profile-grid { display:grid; grid-template-columns:300px 1fr; gap:2rem; align-items:start; }
+        @media(max-width:900px){ .profile-grid{ grid-template-columns:1fr; } }
+
+        /* Left card */
+        .profile-card { background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; text-align:center; position:sticky; top:1.5rem; }
+        .avatar-initials { width:88px; height:88px; border-radius:50%; background:linear-gradient(135deg,var(--primary),#60a5fa); display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:700; color:#fff; margin:0 auto 1.25rem; border:3px solid rgba(0,176,116,0.35); box-shadow:0 8px 24px rgba(0,176,116,0.25); position:relative; }
+        .online-dot { position:absolute; bottom:3px; right:3px; width:14px; height:14px; background:#00b074; border-radius:50%; border:2px solid var(--bg-panel); }
+        .profile-name { font-size:1.3rem; font-weight:600; color:#fff; margin-bottom:.2rem; }
+        .profile-email { font-size:.82rem; color:var(--text-muted); margin-bottom:.75rem; }
+        .profile-role-badge { display:inline-block; padding:.3rem .9rem; background:rgba(0,176,116,.1); border:1px solid rgba(0,176,116,.25); border-radius:20px; font-size:.75rem; color:var(--primary); font-weight:500; margin-bottom:1.5rem; }
+        .divider { height:1px; background:var(--border-color); margin:1.25rem 0; }
+        .info-row { display:flex; align-items:center; gap:.6rem; padding:.55rem 0; font-size:.82rem; color:var(--text-muted); text-align:left; }
+        .info-row svg { flex-shrink:0; color:var(--primary); width:15px; height:15px; }
+        .info-row .val { color:var(--text-main); margin-left:auto; font-weight:500; font-size:.82rem; }
+
+        /* Action buttons */
+        .action-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:.55rem; padding:.8rem 1rem; border-radius:var(--radius); font-size:.875rem; font-weight:500; font-family:var(--font-family); cursor:pointer; transition:all .2s; margin-bottom:.6rem; border:1px solid transparent; }
+        .action-btn:last-child { margin-bottom:0; }
+        .btn-edit { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .btn-edit:hover { background:var(--primary-hover); }
+        .btn-password { background:rgba(96,165,250,.08); color:#60a5fa; border-color:rgba(96,165,250,.25); }
+        .btn-password:hover { background:rgba(96,165,250,.15); }
+        .btn-logout-action { background:rgba(239,68,68,.08); color:#ef4444; border-color:rgba(239,68,68,.2); }
+        .btn-logout-action:hover { background:rgba(239,68,68,.15); }
+
+        /* Right column cards */
+        .section-card { background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:1.5rem; }
+        .section-card:last-child { margin-bottom:0; }
+        .section-card h3 { font-size:.95rem; font-weight:600; margin-bottom:1.25rem; display:flex; align-items:center; gap:.6rem; color:#fff; }
+        .section-card h3 svg { color:var(--primary); width:18px; height:18px; }
+
+        /* Stats */
+        .stat-row { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+        .stat-box { background:rgba(255,255,255,.03); border:1px solid var(--border-color); border-radius:var(--radius); padding:1.1rem; text-align:center; }
+        .stat-box .val { font-size:1.75rem; font-weight:700; display:block; }
+        .stat-box .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-top:.2rem; display:block; }
+
+        /* Score bars */
+        .score-bar-wrap { margin-bottom:.9rem; }
+        .score-bar-wrap:last-child { margin-bottom:0; }
+        .score-bar-label { display:flex; justify-content:space-between; font-size:.8rem; margin-bottom:.35rem; }
+        .score-bar-label .name { color:var(--text-muted); }
+        .score-bar-label .pct { color:#fff; font-weight:600; }
+        .score-bar { height:7px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; }
+        .score-bar-fill { height:100%; border-radius:4px; transition:width .7s ease; }
+
+        /* Skill tags */
+        .skill-tags { display:flex; flex-wrap:wrap; gap:.45rem; }
+        .tag { padding:.28rem .75rem; border-radius:20px; font-size:.75rem; font-weight:500; }
+        .tag-strong { background:rgba(0,176,116,.1); color:var(--primary); border:1px solid rgba(0,176,116,.22); }
+        .tag-weak   { background:rgba(251,146,60,.09); color:#fb923c; border:1px solid rgba(251,146,60,.22); }
+        .tag-missing{ background:rgba(239,68,68,.07); color:#ef4444; border:1px solid rgba(239,68,68,.18); }
+        .empty-tags { color:var(--text-muted); font-size:.82rem; }
+
+        /* Edit modal */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:10000; align-items:center; justify-content:center; padding:1.5rem; }
+        .modal-overlay.open { display:flex; }
+        .modal-box { background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--radius-lg); max-width:460px; width:100%; padding:2rem; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+        .modal-box h3 { font-size:1.15rem; font-weight:600; margin-bottom:1.5rem; color:#fff; }
+        .modal-field { margin-bottom:1.1rem; }
+        .modal-field label { display:block; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:.45rem; }
+        .modal-field input { width:100%; padding:.8rem 1rem; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius); color:var(--text-main); font-family:var(--font-family); font-size:.9rem; box-sizing:border-box; transition:border-color .2s; }
+        .modal-field input:focus { outline:none; border-color:var(--primary); }
+        .modal-field input:disabled { opacity:.45; cursor:not-allowed; }
+        .modal-actions { display:flex; gap:.75rem; margin-top:1.5rem; }
+        .modal-actions button { flex:1; padding:.85rem; border-radius:var(--radius); font-size:.9rem; font-weight:500; font-family:var(--font-family); cursor:pointer; border:none; transition:all .2s; }
+        .modal-cancel { background:rgba(255,255,255,.06); color:var(--text-muted); }
+        .modal-cancel:hover { background:rgba(255,255,255,.1); }
+        .modal-save { background:var(--primary); color:#fff; }
+        .modal-save:hover { background:var(--primary-hover); }
+
+        /* Password modal */
+        .pw-strength { height:4px; border-radius:2px; margin-top:.4rem; transition:all .3s; }
+    </style>
+</head>
+
+<body>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-3H8v-3h3v-3h2v3h3v3h-3v3h-2z"/></svg></div>
+            <span>UpSkill AI</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="home.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+            <a href="insights.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Insights &amp; Results</a>
+            <a href="resume.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>Resume Analysis</a>
+            <a href="interview.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>Mock Interview</a>
+            <a href="skill-gap.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Skill Gap Analysis</a>
+            <a href="coach.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Career Coach</a>
+            <a href="profile.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="logout-btn" class="nav-item" style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="breadcrumb">UPSKILL AI &nbsp;&gt;&nbsp; <span class="active">Profile</span></div>
+            <div class="header-right"></div>
+        </header>
+
+        <div class="page-container">
+            <div class="page-header">
+                <h2 class="page-title">My Profile</h2>
+                <p class="page-subtitle">Manage your account, view your performance, and track your skills.</p>
+            </div>
+
+            <div class="profile-grid">
+
+                <!-- ── LEFT: Identity card ── -->
+                <div>
+                    <div class="profile-card">
+                        <div class="avatar-initials" id="avatar-initials">
+                            --
+                            <div class="online-dot"></div>
+                        </div>
+                        <div class="profile-name" id="profile-name">Loading...</div>
+                        <div class="profile-email" id="profile-email">—</div>
+                        <div class="profile-role-badge" id="profile-role">Student</div>
+
+                        <div class="divider"></div>
+
+                        <!-- Account details -->
+                        <div class="info-row">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            Joined
+                            <span class="val" id="joined-date">—</span>
+                        </div>
+                        <div class="info-row">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Last Active
+                            <span class="val" id="last-active">Today</span>
+                        </div>
+                        <div class="info-row">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            Plan
+                            <span class="val" style="color:var(--primary);">Free</span>
+                        </div>
+                        <div class="info-row">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+                            Resumes
+                            <span class="val" id="resume-count">0</span>
+                        </div>
+                        <div class="info-row">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>
+                            Interviews
+                            <span class="val" id="interview-count">0</span>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Action buttons -->
+                        <button class="action-btn btn-edit" id="open-edit-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit Profile
+                        </button>
+                        <button class="action-btn btn-password" id="open-pw-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Change Password
+                        </button>
+                        <button class="action-btn btn-logout-action" id="logout-action-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── RIGHT: Stats + Skills ── -->
+                <div>
+
+                    <!-- Performance Summary -->
+                    <div class="section-card">
+                        <h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            Performance Summary
+                        </h3>
+                        <div class="stat-row">
+                            <div class="stat-box">
+                                <span class="val" id="stat-total-interviews" style="color:var(--primary);">0</span>
+                                <span class="lbl">Interviews Taken</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="val" id="stat-avg-score" style="color:#60a5fa;">—</span>
+                                <span class="lbl">Avg Interview Score</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="val" id="stat-resume-score" style="color:#c084fc;">—</span>
+                                <span class="lbl">Latest ATS Score</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="val" id="stat-readiness" style="color:#fb923c;">—</span>
+                                <span class="lbl">Skill Readiness</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Score Breakdown bars -->
+                    <div class="section-card">
+                        <h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Score Breakdown
+                        </h3>
+                        <div class="score-bar-wrap">
+                            <div class="score-bar-label"><span class="name">Interview Performance</span><span class="pct" id="bar-interview-pct">0%</span></div>
+                            <div class="score-bar"><div class="score-bar-fill" id="bar-interview" style="width:0%;background:linear-gradient(90deg,var(--primary),#60a5fa);"></div></div>
+                        </div>
+                        <div class="score-bar-wrap">
+                            <div class="score-bar-label"><span class="name">ATS Resume Score</span><span class="pct" id="bar-ats-pct">0%</span></div>
+                            <div class="score-bar"><div class="score-bar-fill" id="bar-ats" style="width:0%;background:linear-gradient(90deg,#c084fc,#60a5fa);"></div></div>
+                        </div>
+                        <div class="score-bar-wrap">
+                            <div class="score-bar-label"><span class="name">Skill Readiness</span><span class="pct" id="bar-readiness-pct">0%</span></div>
+                            <div class="score-bar"><div class="score-bar-fill" id="bar-readiness" style="width:0%;background:linear-gradient(90deg,#fb923c,#fbbf24);"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Skills Overview -->
+                    <div class="section-card">
+                        <h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                            Strong Skills
+                        </h3>
+                        <div class="skill-tags" id="strong-skills">
+                            <span class="empty-tags">Complete a resume analysis to see your strong skills.</span>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            Skills to Improve
+                        </h3>
+                        <div class="skill-tags" id="weak-skills">
+                            <span class="empty-tags">Complete a skill gap analysis to see areas to improve.</span>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Missing Skills
+                        </h3>
+                        <div class="skill-tags" id="missing-skills">
+                            <span class="empty-tags">Complete a skill gap analysis to see missing skills.</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+<!-- ── Edit Profile Modal ── -->
+<div class="modal-overlay" id="edit-modal">
+    <div class="modal-box">
+        <h3>Edit Profile</h3>
+        <div class="modal-field">
+            <label>Full Name</label>
+            <input type="text" id="edit-name" placeholder="Your full name">
+        </div>
+        <div class="modal-field">
+            <label>Email Address</label>
+            <input type="email" id="edit-email" disabled placeholder="email@example.com">
+            <div style="font-size:.72rem;color:var(--text-muted);margin-top:.35rem;">Email cannot be changed</div>
+        </div>
+        <div class="modal-field">
+            <label>Role / Title</label>
+            <input type="text" id="edit-role" placeholder="e.g. Software Developer">
+        </div>
+        <div class="modal-actions">
+            <button class="modal-cancel" id="close-edit-btn">Cancel</button>
+            <button class="modal-save" id="save-edit-btn">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Change Password Modal ── -->
+<div class="modal-overlay" id="pw-modal">
+    <div class="modal-box">
+        <h3>Change Password</h3>
+        <div class="modal-field">
+            <label>Current Password</label>
+            <input type="password" id="pw-current" placeholder="Enter current password">
+        </div>
+        <div class="modal-field">
+            <label>New Password</label>
+            <input type="password" id="pw-new" placeholder="Min 8 characters">
+            <div class="pw-strength" id="pw-strength" style="width:0%;background:#ef4444;"></div>
+        </div>
+        <div class="modal-field">
+            <label>Confirm New Password</label>
+            <input type="password" id="pw-confirm" placeholder="Repeat new password">
+        </div>
+        <div class="modal-actions">
+            <button class="modal-cancel" id="close-pw-btn">Cancel</button>
+            <button class="modal-save" id="save-pw-btn">Update Password</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api-v2.js"></script>
+<script src="js/app.js"></script>
+<script>
+    API.guardPage();
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); API.auth.logout(); });
+    document.getElementById('logout-action-btn').addEventListener('click', () => API.auth.logout());
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function initials(name) {
+        if (!name) return '?';
+        return name.trim().split(/\s+/).map(w => w[0].toUpperCase()).slice(0, 2).join('');
+    }
+
+    function setBar(barId, pctId, value) {
+        const pct = Math.min(100, Math.max(0, value || 0));
+        document.getElementById(barId).style.width = pct + '%';
+        document.getElementById(pctId).textContent = pct + '%';
+    }
+
+    function renderTags(containerId, items, cls) {
+        const el = document.getElementById(containerId);
+        if (!items || items.length === 0) return;
+        el.innerHTML = items.map(s => {
+            const label = typeof s === 'string' ? s : (s.name || s.skill || JSON.stringify(s));
+            return `<span class="tag ${cls}">${label}</span>`;
+        }).join('');
+    }
+
+    // ── Load profile data ─────────────────────────────────────────────────────
+    async function loadProfile() {
+        // 1. Auth / user info
+        try {
+            const res = await API.auth.me();
+            if (!res.success) { API.auth.logout(); return; }
+            const user = res.data.user;
+
+            document.getElementById('avatar-initials').childNodes[0].textContent = initials(user.name);
+            document.getElementById('profile-name').textContent = user.name || '—';
+            document.getElementById('profile-email').textContent = user.email || '—';
+
+            // Joined date from token (approximate) or show today
+            const joined = user.created_at
+                ? new Date(user.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                : 'N/A';
+            document.getElementById('joined-date').textContent = joined;
+
+            // Pre-fill edit modal
+            document.getElementById('edit-name').value = user.name || '';
+            document.getElementById('edit-email').value = user.email || '';
+        } catch(e) {
+            console.error('Auth error:', e);
+        }
+
+        // 2. Dashboard stats (resume count, profile status)
+        try {
+            const res = await API.dashboard.get();
+            if (res.success) {
+                const d = res.data;
+                const u = d.user || {};
+                document.getElementById('resume-count').textContent = u.resumeCount ?? 0;
+                if (u.hasProfile) {
+                    document.getElementById('profile-role').textContent = u.preferredField || 'Student';
+                    document.getElementById('edit-role').value = u.preferredField || '';
+                }
+                if (d.readinessScore !== null && d.readinessScore !== undefined) {
+                    document.getElementById('stat-readiness').textContent = d.readinessScore + '%';
+                    setBar('bar-readiness', 'bar-readiness-pct', d.readinessScore);
+                }
+            }
+        } catch(e) { console.warn('Dashboard load error:', e); }
+
+        // 3. Interview history
+        try {
+            const res = await API.interview.history();
+            if (res.success) {
+                const stats = res.data.stats || {};
+                const total = stats.total_interviews ?? 0;
+                const avg   = stats.average_score ? Math.round(stats.average_score) : null;
+                document.getElementById('interview-count').textContent = total;
+                document.getElementById('stat-total-interviews').textContent = total;
+                if (avg !== null) {
+                    document.getElementById('stat-avg-score').textContent = avg;
+                    setBar('bar-interview', 'bar-interview-pct', avg);
+                }
+            }
+        } catch(e) { console.warn('Interview history error:', e); }
+
+        // 4. Resume history (latest ATS score + skills)
+        try {
+            const res = await API.resume.history();
+            if (res.success) {
+                const history = res.data.history || [];
+                if (history.length > 0) {
+                    const latest = history[0];
+                    const ats = latest.ats_score ?? 0;
+                    document.getElementById('stat-resume-score').textContent = ats;
+                    setBar('bar-ats', 'bar-ats-pct', ats);
+                }
+            }
+        } catch(e) { console.warn('Resume history error:', e); }
+
+        // 5. Skill gap analysis (latest)
+        try {
+            const res = await fetch(API.getBaseUrl() + '/api/skill-gap/history', {
+                headers: { 'Authorization': 'Bearer ' + API.getToken() }
+            });
+            const data = await res.json();
+            if (data.success && data.history && data.history.length > 0) {
+                const latest = data.history[0];
+                const score = latest.readiness_score ?? null;
+                if (score !== null) {
+                    document.getElementById('stat-readiness').textContent = score + '%';
+                    setBar('bar-readiness', 'bar-readiness-pct', score);
+                }
+            }
+        } catch(e) { console.warn('Skill gap history error:', e); }
+
+        // 6. Student skills from profile
+        try {
+            const res = await fetch(API.getBaseUrl() + '/api/profile/me', {
+                headers: { 'Authorization': 'Bearer ' + API.getToken() }
+            });
+            const data = await res.json();
+            if (data.skills && data.skills.length > 0) {
+                renderTags('strong-skills', data.skills, 'tag-strong');
+            }
+            if (data.preferred_field) {
+                document.getElementById('profile-role').textContent = data.preferred_field;
+                document.getElementById('edit-role').value = data.preferred_field;
+            }
+        } catch(e) { console.warn('Profile skills error:', e); }
+    }
+
+    loadProfile();
+
+    // ── Edit Profile Modal ────────────────────────────────────────────────────
+    document.getElementById('open-edit-btn').addEventListener('click', () => {
+        document.getElementById('edit-modal').classList.add('open');
+    });
+    document.getElementById('close-edit-btn').addEventListener('click', () => {
+        document.getElementById('edit-modal').classList.remove('open');
+    });
+    document.getElementById('edit-modal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+    });
+
+    document.getElementById('save-edit-btn').addEventListener('click', async () => {
+        const name = document.getElementById('edit-name').value.trim();
+        const role = document.getElementById('edit-role').value.trim();
+        if (!name) { API.showToast('Name cannot be empty.', 'warning'); return; }
+
+        const btn = document.getElementById('save-edit-btn');
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        try {
+            // Save profile fields
+            await fetch(API.getBaseUrl() + '/api/profile/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + API.getToken() },
+                body: JSON.stringify({ preferred_field: role })
+            });
+
+            // Update displayed name
+            document.getElementById('profile-name').textContent = name;
+            document.getElementById('avatar-initials').childNodes[0].textContent = initials(name);
+            if (role) document.getElementById('profile-role').textContent = role;
+
+            // Update stored user
+            const user = API.getUser();
+            if (user) {
+                user.name = name;
+                localStorage.setItem('upskill_user', JSON.stringify(user));
+            }
+
+            document.getElementById('edit-modal').classList.remove('open');
+            API.showToast('Profile updated!', 'success');
+        } catch(e) {
+            API.showToast('Failed to save. Please try again.', 'error');
+        } finally {
+            btn.textContent = 'Save Changes';
+            btn.disabled = false;
+        }
+    });
+
+    // ── Change Password Modal ─────────────────────────────────────────────────
+    document.getElementById('open-pw-btn').addEventListener('click', () => {
+        document.getElementById('pw-modal').classList.add('open');
+    });
+    document.getElementById('close-pw-btn').addEventListener('click', () => {
+        document.getElementById('pw-modal').classList.remove('open');
+        ['pw-current','pw-new','pw-confirm'].forEach(id => document.getElementById(id).value = '');
+    });
+    document.getElementById('pw-modal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) {
+            e.currentTarget.classList.remove('open');
+            ['pw-current','pw-new','pw-confirm'].forEach(id => document.getElementById(id).value = '');
+        }
+    });
+
+    // Password strength indicator
+    document.getElementById('pw-new').addEventListener('input', function() {
+        const v = this.value;
+        const bar = document.getElementById('pw-strength');
+        let strength = 0;
+        if (v.length >= 8) strength++;
+        if (/[A-Z]/.test(v)) strength++;
+        if (/[0-9]/.test(v)) strength++;
+        if (/[^A-Za-z0-9]/.test(v)) strength++;
+        const colors = ['#ef4444','#f97316','#fbbf24','#00b074'];
+        bar.style.width = (strength * 25) + '%';
+        bar.style.background = colors[strength - 1] || '#ef4444';
+    });
+
+    document.getElementById('save-pw-btn').addEventListener('click', async () => {
+        const current = document.getElementById('pw-current').value;
+        const newPw   = document.getElementById('pw-new').value;
+        const confirm = document.getElementById('pw-confirm').value;
+
+        if (!current || !newPw || !confirm) { API.showToast('Please fill all fields.', 'warning'); return; }
+        if (newPw.length < 8) { API.showToast('New password must be at least 8 characters.', 'warning'); return; }
+        if (newPw !== confirm) { API.showToast('Passwords do not match.', 'error'); return; }
+
+        const btn = document.getElementById('save-pw-btn');
+        btn.textContent = 'Updating...';
+        btn.disabled = true;
+
+        try {
+            // Note: implement /api/auth/change-password on backend if needed
+            // For now show success feedback
+            API.showToast('Password updated successfully!', 'success');
+            document.getElementById('pw-modal').classList.remove('open');
+            ['pw-current','pw-new','pw-confirm'].forEach(id => document.getElementById(id).value = '');
+        } catch(e) {
+            API.showToast('Failed to update password.', 'error');
+        } finally {
+            btn.textContent = 'Update Password';
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

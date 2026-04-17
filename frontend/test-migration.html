@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Test - UpSkill AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0d1115 0%, #1a2332 100%);
+            color: #fff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #00b074, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 2rem;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .test-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+        .test-card:hover {
+            border-color: #00b074;
+            transform: translateY(-2px);
+        }
+        .test-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .test-card p {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        .test-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #00b074;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .test-btn:hover {
+            background: #00d68f;
+            transform: scale(1.02);
+        }
+        .test-btn:disabled {
+            background: rgba(255,255,255,0.1);
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+        .status.pending {
+            background: rgba(96,165,250,0.2);
+            color: #60a5fa;
+        }
+        .status.success {
+            background: rgba(0,176,116,0.2);
+            color: #00b074;
+        }
+        .status.error {
+            background: rgba(239,68,68,0.2);
+            color: #ef4444;
+        }
+        .results {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        .results h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        .result-item {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(255,255,255,0.02);
+            border-left: 3px solid #00b074;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .result-item.error {
+            border-left-color: #ef4444;
+        }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Migration Test Suite</h1>
+        <p class="subtitle">Test all migrated endpoints to verify api-v2.js integration</p>
+
+        <div class="test-grid">
+            <!-- Authentication Tests -->
+            <div class="test-card">
+                <h3>🔐 Authentication</h3>
+                <p>Test login/register with structured responses</p>
+                <button class="test-btn" onclick="testAuth()">Test Auth</button>
+                <div id="auth-status"></div>
+            </div>
+
+            <!-- Dashboard Test -->
+            <div class="test-card">
+                <h3>📊 Dashboard</h3>
+                <p>Test dashboard data loading</p>
+                <button class="test-btn" onclick="testDashboard()">Test Dashboard</button>
+                <div id="dashboard-status"></div>
+            </div>
+
+            <!-- Resume Test -->
+            <div class="test-card">
+                <h3>📄 Resume API</h3>
+                <p>Test resume history endpoint</p>
+                <button class="test-btn" onclick="testResume()">Test Resume</button>
+                <div id="resume-status"></div>
+            </div>
+
+            <!-- Interview Test -->
+            <div class="test-card">
+                <h3>🎤 Interview API</h3>
+                <p>Test interview history endpoint</p>
+                <button class="test-btn" onclick="testInterview()">Test Interview</button>
+                <div id="interview-status"></div>
+            </div>
+
+            <!-- Skills Test -->
+            <div class="test-card">
+                <h3>🎯 Skills API</h3>
+                <p>Test skill gap analysis</p>
+                <button class="test-btn" onclick="testSkills()">Test Skills</button>
+                <div id="skills-status"></div>
+            </div>
+
+            <!-- Coach Test -->
+            <div class="test-card">
+                <h3>💬 Coach API</h3>
+                <p>Test career coach chat</p>
+                <button class="test-btn" onclick="testCoach()">Test Coach</button>
+                <div id="coach-status"></div>
+            </div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <h2>📋 Test Results</h2>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script src="js/api-v2.js"></script>
+    <script>
+        const results = [];
+
+        function showStatus(id, status, message) {
+            const el = document.getElementById(id);
+            el.innerHTML = `<div class="status ${status}">${status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳'} ${message}</div>`;
+        }
+
+        function addResult(test, success, message, data = null) {
+            results.push({ test, success, message, data, timestamp: new Date() });
+            updateResults();
+        }
+
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('results-content');
+            
+            resultsDiv.style.display = 'block';
+            contentDiv.innerHTML = results.map(r => `
+                <div class="result-item ${r.success ? '' : 'error'}">
+                    <strong>${r.success ? '✅' : '❌'} ${r.test}</strong>
+                    <div style="margin-top: 0.5rem; color: rgba(255,255,255,0.7);">${r.message}</div>
+                    ${r.data ? `<pre>${JSON.stringify(r.data, null, 2)}</pre>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function testAuth() {
+            showStatus('auth-status', 'pending', 'Testing...');
+            
+            try {
+                // Test if API client is loaded
+                if (typeof API === 'undefined') {
+                    throw new Error('API client not loaded');
+                }
+
+                // Check if auth methods exist
+                if (!API.auth || !API.auth.login) {
+                    throw new Error('API.auth.login not found');
+                }
+
+                showStatus('auth-status', 'success', 'API client loaded');
+                addResult('Authentication', true, 'API.auth methods available', {
+                    methods: Object.keys(API.auth)
+                });
+            } catch (error) {
+                showStatus('auth-status', 'error', error.message);
+                addResult('Authentication', false, error.message);
+            }
+        }
+
+        async function testDashboard() {
+            showStatus('dashboard-status', 'pending', 'Testing...');
+            
+            try {
+                if (!API.auth.isLoggedIn()) {
+                    throw new Error('Not logged in - please login first');
+                }
+
+                const response = await API.dashboard.get();
+                
+                if (response.success) {
+                    showStatus('dashboard-status', 'success', 'Dashboard loaded');
+                    addResult('Dashboard', true, 'Structured response received', {
+                        hasData: !!response.data,
+                        dataKeys: Object.keys(response.data || {})
+                    });
+                } else {
+                    throw new Error(response.error?.message || 'Failed to load dashboard');
+                }
+            } catch (error) {
+                showStatus('dashboard-status', 'error', error.message);
+                addResult('Dashboard', false, error.message);
+            }
+        }
+
+        async function testResume() {
+            showStatus('resume-status', 'pending', 'Testing...');
+            
+            try {
+                if (!API.auth.isLoggedIn()) {
+                    throw new Error('Not logged in - please login first');
+                }
+
+                const response = await API.resume.history();
+                
+                if (response.success) {
+                    showStatus('resume-status', 'success', 'Resume API working');
+                    addResult('Resume', true, 'Structured response received', {
+                        hasData: !!response.data,
+                        historyCount: response.data?.history?.length || 0
+                    });
+                } else {
+                    throw new Error(response.error?.message || 'Failed to load resume history');
+                }
+            } catch (error) {
+                showStatus('resume-status', 'error', error.message);
+                addResult('Resume', false, error.message);
+            }
+        }
+
+        async function testInterview() {
+            showStatus('interview-status', 'pending', 'Testing...');
+            
+            try {
+                if (!API.auth.isLoggedIn()) {
+                    throw new Error('Not logged in - please login first');
+                }
+
+                const response = await API.interview.history();
+                
+                if (response.success) {
+                    showStatus('interview-status', 'success', 'Interview API working');
+                    addResult('Interview', true, 'Structured response received', {
+                        hasData: !!response.data,
+                        historyCount: response.data?.history?.length || 0
+                    });
+                } else {
+                    throw new Error(response.error?.message || 'Failed to load interview history');
+                }
+            } catch (error) {
+                showStatus('interview-status', 'error', error.message);
+                addResult('Interview', false, error.message);
+            }
+        }
+
+        async function testSkills() {
+            showStatus('skills-status', 'pending', 'Testing...');
+            
+            try {
+                if (!API.auth.isLoggedIn()) {
+                    throw new Error('Not logged in - please login first');
+                }
+
+                // Test if skills methods exist
+                if (!API.skills || !API.skills.analyzeGaps) {
+                    throw new Error('API.skills.analyzeGaps not found');
+                }
+
+                showStatus('skills-status', 'success', 'Skills API available');
+                addResult('Skills', true, 'API.skills methods available', {
+                    methods: Object.keys(API.skills)
+                });
+            } catch (error) {
+                showStatus('skills-status', 'error', error.message);
+                addResult('Skills', false, error.message);
+            }
+        }
+
+        async function testCoach() {
+            showStatus('coach-status', 'pending', 'Testing...');
+            
+            try {
+                if (!API.auth.isLoggedIn()) {
+                    throw new Error('Not logged in - please login first');
+                }
+
+                // Test if coach methods exist
+                if (!API.coach || !API.coach.chat) {
+                    throw new Error('API.coach.chat not found');
+                }
+
+                showStatus('coach-status', 'success', 'Coach API available');
+                addResult('Coach', true, 'API.coach methods available', {
+                    methods: Object.keys(API.coach)
+                });
+            } catch (error) {
+                showStatus('coach-status', 'error', error.message);
+                addResult('Coach', false, error.message);
+            }
+        }
+
+        // Auto-run basic tests on load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Migration Test Suite loaded');
+            console.log('📝 Click buttons to test each endpoint');
+            
+            // Test if API is loaded
+            if (typeof API !== 'undefined') {
+                console.log('✅ API client loaded successfully');
+                addResult('API Client', true, 'api-v2.js loaded successfully', {
+                    version: 'v2',
+                    methods: Object.keys(API)
+                });
+            } else {
+                console.error('❌ API client not loaded');
+                addResult('API Client', false, 'api-v2.js failed to load');
+            }
+        });
+    </script>
+</body>
+</html>

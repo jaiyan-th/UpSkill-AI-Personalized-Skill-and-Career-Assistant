@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- UPDATED: 2026-04-09 19:57 - Skill Gap Analysis link added to sidebar -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>UpSkill AI | Global Insights</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260409195728">
+    <style>
+        /* ── Performance Trends Chart Panel ── */
+        .trends-panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+        .trends-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        .trends-header h3 { font-size: 1rem; font-weight: 500; }
+        .trend-legend { display: flex; gap: 1.25rem; }
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .legend-dot.green { background-color: #00b074; }
+        .legend-dot.blue  { background-color: #60a5fa; }
+
+        .chart-wrap { width: 100%; overflow: hidden; }
+        .chart-wrap svg { display: block; width: 100%; }
+
+        /* ── Tabs ── */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.25rem;
+            gap: 0;
+        }
+        .tab-btn {
+            background: none; border: none;
+            padding: 0.6rem 1.25rem;
+            font-size: 0.8rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+            font-family: var(--font-family);
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* ── Result Rows ── */
+        .result-row {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.6rem;
+            cursor: pointer;
+            transition: border-color 0.15s;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+        .result-row:hover { 
+            border-color: var(--primary); 
+            background: rgba(255,255,255,0.05);
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(0,176,116,0.2);
+        }
+        .result-row:hover .row-chevron {
+            transform: translateX(4px);
+            color: var(--primary);
+        }
+
+        .row-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--radius);
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 1rem; flex-shrink: 0;
+        }
+        .row-icon svg { width: 18px; height: 18px; }
+
+        .row-info { flex: 1; }
+        .row-info h4 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.2rem; }
+        .row-meta { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted); }
+        .row-meta svg { width: 12px; height: 12px; }
+
+        .row-scores { display: flex; align-items: center; gap: 2rem; }
+        .score-block { text-align: center; }
+        .score-val { font-size: 1.2rem; font-weight: 600; display: block; }
+        .score-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-top: 0.1rem; }
+
+        .row-chevron { color: var(--text-muted); margin-left: 0.75rem; }
+        .row-chevron svg { width: 16px; height: 16px; }
+
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+        .empty-state a { color: var(--primary); }
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-3H8v-3h3v-3h2v3h3v3h-3v3h-2z"/></svg></div>
+            <span>UpSkill AI</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="home.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+            <a href="insights.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Insights & Results</a>
+            <a href="resume.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>Resume Analysis</a>
+            <a href="interview.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>Mock Interview</a>
+            <a href="skill-gap.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Skill Gap Analysis</a>
+            <a href="coach.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Career Coach</a>
+            <a href="profile.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" style="color:var(--text-muted);" id="collapse-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Collapse Sidebar</a>
+            <a href="#" id="logout-btn" class="nav-item" style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="breadcrumb">UPSKILL AI &nbsp;&gt;&nbsp; <span class="active">Insights</span></div>
+            <div class="header-right">
+                <div class="search-bar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg><input type="text" placeholder="Search resources..."></div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <div class="page-header">
+                <h2 class="page-title">Global Insights &amp; Results</h2>
+                <p class="page-subtitle">Review your historical performance and track your growth over time.</p>
+            </div>
+
+            <!-- Performance Trends Chart -->
+            <div class="trends-panel">
+                <div class="trends-header">
+                    <h3>Performance Trends</h3>
+                    <div class="trend-legend">
+                        <div class="legend-item"><div class="legend-dot green"></div> Interview Score</div>
+                        <div class="legend-item"><div class="legend-dot blue"></div> ATS Score</div>
+                    </div>
+                </div>
+                <div class="chart-wrap">
+                    <svg id="trend-chart" viewBox="0 0 860 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:200px;">
+                        <!-- Y axis labels -->
+                        <text x="32" y="20"  fill="#94a3b8" font-size="9" font-family="Inter" text-anchor="end">100%</text>
+                        <text x="32" y="68"  fill="#94a3b8" font-size="9" font-family="Inter" text-anchor="end">75%</text>
+                        <text x="32" y="115" fill="#94a3b8" font-size="9" font-family="Inter" text-anchor="end">50%</text>
+                        <text x="32" y="162" fill="#94a3b8" font-size="9" font-family="Inter" text-anchor="end">25%</text>
+                        <text x="32" y="195" fill="#94a3b8" font-size="9" font-family="Inter" text-anchor="end">0%</text>
+                        <!-- Grid lines -->
+                        <line x1="38" y1="13"  x2="858" y2="13"  stroke="#26323f" stroke-width="1"/>
+                        <line x1="38" y1="62"  x2="858" y2="62"  stroke="#26323f" stroke-width="1"/>
+                        <line x1="38" y1="110" x2="858" y2="110" stroke="#26323f" stroke-width="1"/>
+                        <line x1="38" y1="158" x2="858" y2="158" stroke="#26323f" stroke-width="1"/>
+                        <line x1="38" y1="193" x2="858" y2="193" stroke="#26323f" stroke-width="1"/>
+                        <!-- Placeholder text (removed when data loads) -->
+                        <text id="chart-empty" x="448" y="108" fill="#94a3b8" font-size="12" font-family="Inter" text-anchor="middle">No data yet — complete interviews to see your trends</text>
+                        <!-- Dynamic paths injected by JS -->
+                        <path id="iv-line" d="" stroke="#00b074" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                        <g id="iv-dots"></g>
+                        <path id="ats-line" d="" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                        <g id="ats-dots"></g>
+                        <!-- X axis labels (injected by JS) -->
+                        <g id="x-labels"></g>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tab-interviews" data-tab="interviews">Mock Interviews</button>
+                <button class="tab-btn" id="tab-resumes" data-tab="resumes">Resume Analyses</button>
+            </div>
+
+            <!-- Interview list -->
+            <div id="panel-interviews"></div>
+            <!-- Resume list -->
+            <div id="panel-resumes" style="display:none;"></div>
+        </div>
+    </main>
+</div>
+
+<script src="js/api-v2.js"></script>
+<script src="js/app.js"></script>
+<script>
+    API.guardPage();
+    API.populateUserInfo();
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); API.auth.logout(); });
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('panel-interviews').style.display = btn.dataset.tab === 'interviews' ? 'block' : 'none';
+            document.getElementById('panel-resumes').style.display   = btn.dataset.tab === 'resumes'    ? 'block' : 'none';
+        });
+    });
+
+    // Chart helpers
+    function scoreToY(score) {
+        // Map 0–100 to y=193 (0%) down to y=13 (100%)
+        return 193 - ((score / 100) * 180);
+    }
+
+    function buildChartLine(lineId, dotsId, points, color) {
+        if (points.length === 0) return;
+        const lineEl = document.getElementById(lineId);
+        const dotsEl = document.getElementById(dotsId);
+        const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+        lineEl.setAttribute('d', d);
+        dotsEl.innerHTML = '';
+        points.forEach(p => {
+            const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
+            c.setAttribute('r', '4.5'); c.setAttribute('fill', color);
+            c.setAttribute('stroke', '#0d1115'); c.setAttribute('stroke-width', '2');
+            dotsEl.appendChild(c);
+        });
+    }
+
+    async function loadInsights() {
+        // ── Interview history ──
+        try {
+            const response = await API.interview.history();
+            
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to load interview history');
+            }
+            
+            const data = response.data;
+            console.log('Interview data received:', data);
+            const history = (data.history || []).filter(h => h.status === 'completed');
+            console.log('Completed interviews:', history);
+
+            const iPanel = document.getElementById('panel-interviews');
+            if (!iPanel) {
+                console.error('panel-interviews element not found');
+                return;
+            }
+            
+            let ivPoints = []; // Initialize outside the if block
+            
+            if (history.length === 0) {
+                iPanel.innerHTML = `<div class="empty-state">No interviews yet. <a href="interview.html">Start your first →</a></div>`;
+            } else {
+                // Build chart
+                document.getElementById('chart-empty')?.remove();
+                const step = history.length > 1 ? 780 / (history.length - 1) : 0;
+                const ivPoints = history.map((h, i) => ({
+                    x: 48 + i * step,
+                    y: scoreToY(h.score || 0)
+                }));
+                buildChartLine('iv-line', 'iv-dots', ivPoints, '#00b074');
+
+                // X labels
+                const xlEl = document.getElementById('x-labels');
+                history.forEach((h, i) => {
+                    const x = 48 + i * step;
+                    const d = h.date ? new Date(h.date).toLocaleDateString('en-US', { month:'short', day:'numeric' }) : '';
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    t.setAttribute('x', x); t.setAttribute('y', 210);
+                    t.setAttribute('fill', '#94a3b8'); t.setAttribute('font-size', '9');
+                    t.setAttribute('font-family', 'Inter'); t.setAttribute('text-anchor', 'middle');
+                    t.textContent = d;
+                    xlEl.appendChild(t);
+                });
+
+                // Interview rows
+                iPanel.innerHTML = history.map(h => {
+                    const sc = h.score || 0;
+                    const color = sc >= 80 ? '#00b074' : sc >= 60 ? '#60a5fa' : '#f97316';
+                    const date = h.date ? new Date(h.date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '';
+                    return `<div class="result-row" onclick="viewInterviewDetails(${h.id})" style="cursor: pointer;">
+                        <div class="row-icon" style="background:rgba(0,176,116,0.1); color:var(--primary);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1z"/><rect width="14" height="14" x="2" y="5" rx="2" ry="2"/></svg>
+                        </div>
+                        <div class="row-info">
+                            <h4>${h.role || 'Interview'}</h4>
+                            <div class="row-meta">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                ${date}${h.level ? ' · ' + h.level : ''}
+                            </div>
+                        </div>
+                        <div class="row-scores">
+                            <div class="score-block">
+                                <span class="score-val" style="color:${color};">${sc}%</span>
+                                <span class="score-lbl">Overall Score</span>
+                            </div>
+                        </div>
+                        <div class="row-chevron">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // Static ATS line (demo) — can be replaced with real resume API data
+            // Only create ATS demo if there are interview points
+            if (ivPoints && ivPoints.length > 0) {
+                const atsDemo = ivPoints.map(p => ({ x: p.x, y: scoreToY(Math.min(100, (100 - scoreToY(p.y)/180*100) * 0.9)) }));
+                if (atsDemo.length) buildChartLine('ats-line', 'ats-dots', atsDemo, '#60a5fa');
+            }
+
+        } catch (e) {
+            console.error('Error loading insights:', e);
+            const iPanel = document.getElementById('panel-interviews');
+            if (iPanel) {
+                if (e.message && e.message.includes('Unauthorized')) {
+                    iPanel.innerHTML = `<div class="empty-state">Session expired. Please <a href="index.html">log in again</a>.</div>`;
+                } else if (e.message && e.message.includes('Failed to fetch')) {
+                    iPanel.innerHTML = `<div class="empty-state">Cannot connect to server. Please check if the backend is running and <a href="javascript:location.reload()">refresh the page</a>.</div>`;
+                } else {
+                    iPanel.innerHTML = `<div class="empty-state">Error loading data: ${e.message || 'Unknown error'}. Try <a href="javascript:location.reload()">refreshing the page</a>.</div>`;
+                }
+            }
+        }
+
+        // ── Resume analyses ──
+        try {
+            const response = await API.resume.history();
+            
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to load resume history');
+            }
+            
+            const resumeData = response.data;
+            console.log('Resume history data:', resumeData);
+            
+            const rPanel = document.getElementById('panel-resumes');
+            const history = resumeData.history || [];
+            
+            if (history.length === 0) {
+                // No resumes uploaded yet
+                rPanel.innerHTML = `
+                    <div class="result-row" onclick="window.location.href='resume.html'" style="cursor: pointer;">
+                        <div class="row-icon" style="background:rgba(96,165,250,0.1); color:#60a5fa;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </div>
+                        <div class="row-info">
+                            <h4>Software Engineer Resume</h4>
+                            <div class="row-meta">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Upload a resume to see results here
+                            </div>
+                        </div>
+                        <div class="row-scores">
+                            <div class="score-block"><span class="score-val" style="color:#60a5fa;">—</span><span class="score-lbl">ATS Score</span></div>
+                            <div class="score-block"><span class="score-val" style="color:#c084fc;">—</span><span class="score-lbl">Tech Match</span></div>
+                            <div class="score-block"><span class="score-val" style="color:#f97316;">—</span><span class="score-lbl">Improvements</span></div>
+                        </div>
+                        <div class="row-chevron"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+                    </div>`;
+            } else {
+                // Display resume history
+                rPanel.innerHTML = history.map(resume => {
+                    const atsScore = resume.ats_score || 0;
+                    const atsColor = atsScore >= 80 ? '#00b074' : atsScore >= 60 ? '#60a5fa' : '#f97316';
+                    const uploadDate = resume.uploaded_at ? new Date(resume.uploaded_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : 'Recently';
+                    const techMatch = resume.tech_match || '—';
+                    const improvements = resume.improvements_count || 0;
+                    
+                    return `
+                        <div class="result-row" onclick="window.location.href='resume.html'" style="cursor: pointer;">
+                            <div class="row-icon" style="background:rgba(96,165,250,0.1); color:#60a5fa;">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </div>
+                            <div class="row-info">
+                                <h4>${resume.file_name || 'Resume'}</h4>
+                                <div class="row-meta">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    ${uploadDate} · ${resume.skills_count || 0} skills detected
+                                </div>
+                            </div>
+                            <div class="row-scores">
+                                <div class="score-block"><span class="score-val" style="color:${atsColor};">${atsScore}</span><span class="score-lbl">ATS Score</span></div>
+                                <div class="score-block"><span class="score-val" style="color:#c084fc;">${techMatch}</span><span class="score-lbl">Tech Match</span></div>
+                                <div class="score-block"><span class="score-val" style="color:#f97316;">${improvements}</span><span class="score-lbl">Improvements</span></div>
+                            </div>
+                            <div class="row-chevron"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+                        </div>`;
+                }).join('');
+                
+                // Add ATS scores to chart if we have resume data
+                if (history.length > 0 && ivPoints && ivPoints.length > 0) {
+                    // Create ATS points matching interview timeline
+                    const atsPoints = history.slice(0, ivPoints.length).map((resume, i) => ({
+                        x: ivPoints[i].x,
+                        y: scoreToY(resume.ats_score || 0)
+                    }));
+                    if (atsPoints.length > 0) {
+                        buildChartLine('ats-line', 'ats-dots', atsPoints, '#60a5fa');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading resume data:', error);
+            document.getElementById('panel-resumes').innerHTML = `
+                <div class="empty-state">Error loading resume history. <a href="javascript:location.reload()">Refresh page</a></div>`;
+        }
+    }
+
+    loadInsights();
+    
+    // Function to view interview details
+    function viewInterviewDetails(interviewId) {
+        API.showToast('Loading interview details...', 'info');
+        
+        // Fetch detailed interview data
+        fetch(`http://localhost:5000/api/interview/insights/${interviewId}`, {
+            headers: {
+                'Authorization': `Bearer ${API.getToken()}`
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.interview) {
+                showInterviewModal(data);
+            } else {
+                API.showToast('Interview details not available', 'warning');
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching interview details:', err);
+            API.showToast('Could not load interview details', 'error');
+        });
+    }
+    
+    // Function to show interview details in a modal
+    function showInterviewModal(data) {
+        const interview = data.interview;
+        const qaPairs = data.qa_pairs || [];
+        
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 2rem;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 100%;
+        `;
+        
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; font-size: 1.5rem;">${interview.role} Interview</h2>
+                <button onclick="this.closest('[style*=fixed]').remove()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                <div style="background: rgba(0,176,116,0.1); padding: 1rem; border-radius: var(--radius); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 600; color: var(--primary);">${interview.overall_score || 0}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Overall Score</div>
+                </div>
+                <div style="background: rgba(96,165,250,0.1); padding: 1rem; border-radius: var(--radius); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 600; color: #60a5fa;">${interview.evaluation?.technical_accuracy || '—'}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Technical</div>
+                </div>
+                <div style="background: rgba(200,132,252,0.1); padding: 1rem; border-radius: var(--radius); text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 600; color: #c084fc;">${interview.evaluation?.communication_clarity || '—'}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Communication</div>
+                </div>
+            </div>
+            
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Questions & Answers</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                ${qaPairs.map((qa, i) => `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                            <strong style="color: var(--primary);">Q${i + 1}:</strong>
+                            <span style="background: rgba(0,176,116,0.2); color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                ${qa.content_score || qa.score || 0}/10
+                            </span>
+                        </div>
+                        <p style="margin-bottom: 0.75rem; line-height: 1.6;">${qa.question}</p>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: var(--radius); margin-bottom: 0.75rem;">
+                            <strong style="font-size: 0.875rem; color: var(--text-muted);">Your Answer:</strong>
+                            <p style="margin-top: 0.5rem; line-height: 1.6; color: var(--text-main);">${qa.answer || 'No answer provided'}</p>
+                        </div>
+                        ${qa.speech_analysis?.feedback ? `
+                            <div style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.6;">
+                                <strong>Feedback:</strong> ${qa.speech_analysis.feedback}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+            
+            ${interview.evaluation?.strengths?.length ? `
+                <div style="margin-top: 2rem;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Strengths</h3>
+                    ${interview.evaluation.strengths.map(s => `
+                        <div style="background: rgba(0,176,116,0.1); border: 1px solid rgba(0,176,116,0.2); padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.5rem;">
+                            ✓ ${s}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            
+            ${interview.evaluation?.weaknesses?.length ? `
+                <div style="margin-top: 1.5rem;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Areas to Improve</h3>
+                    ${interview.evaluation.weaknesses.map(w => `
+                        <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.5rem;">
+                            → ${w}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        `;
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+</script>
+</body>
+</html>
