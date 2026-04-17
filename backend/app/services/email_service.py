@@ -74,7 +74,8 @@ class EmailService:
     
     def send_email(self, to_email: str, subject: str, html_body: str, text_body: Optional[str] = None):
         """
-        Send email asynchronously (non-blocking)
+        Send email asynchronously (non-blocking) on traditional servers,
+        or synchronously on Vercel (serverless environments freeze background threads).
         
         Args:
             to_email: Recipient email address
@@ -82,13 +83,18 @@ class EmailService:
             html_body: HTML content of the email
             text_body: Plain text fallback (optional)
         """
-        # Send in background thread to avoid blocking API response
-        thread = threading.Thread(
-            target=self._send_email_sync,
-            args=(to_email, subject, html_body, text_body)
-        )
-        thread.daemon = True
-        thread.start()
+        if os.getenv("VERCEL"):
+            # Serverless environments freeze background threads after the response is returned.
+            # We must send the email synchronously here.
+            self._send_email_sync(to_email, subject, html_body, text_body)
+        else:
+            # Traditional server: Send in background thread to avoid blocking API response
+            thread = threading.Thread(
+                target=self._send_email_sync,
+                args=(to_email, subject, html_body, text_body)
+            )
+            thread.daemon = True
+            thread.start()
     
     def send_welcome_email(self, user_name: str, user_email: str):
         """

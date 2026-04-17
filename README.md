@@ -86,7 +86,7 @@ python server.py
 ### ✅ Email Notifications
 - **Welcome Email** — Sent on successful registration
 - **Login Alerts** — Security notification on each login
-- **Non-blocking Delivery** — Emails sent in background threads; API stays fast
+- **Smart Delivery** — Emails sent in background threads locally (non-blocking), falling back to synchronous delivery on serverless platforms (like Vercel) to guarantee delivery.
 
 ---
 
@@ -227,10 +227,11 @@ API processes request instantly (~100ms)
         │
         ├── Returns response to user ✅
         │
-        └── Background thread sends email (~2–5s) 📧
+        └── Local / Docker: Background thread sends email (~2–5s) 📧
+            Vercel / Serverless: Sends synchronously before returning response
 ```
 
-Email never blocks the API. If sending fails, the error is logged and the app continues normally.
+Email never blocks the API in traditional deployments. On serverless platforms like Vercel (where background threads are frozen immediately), the system automatically detects the environment and falls back to synchronous delivery to guarantee your emails send successfully.
 
 ---
 
