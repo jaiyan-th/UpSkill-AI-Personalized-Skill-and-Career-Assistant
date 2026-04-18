@@ -34,6 +34,7 @@ env/
 *.db
 *.sqlite
 *.sqlite3
+# (Note: Local SQLite files are ignored. Production now uses Supabase PostgreSQL)
 
 # --- Logs ---
 logs/

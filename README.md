@@ -129,7 +129,7 @@ frontend/
 | Backend Framework | Flask 2.3.3 |
 | Authentication | Flask-JWT-Extended |
 | AI / LLM | Groq AI (Llama 3) |
-| Database | SQLite |
+| Database | Supabase (PostgreSQL) |
 | PDF Parsing | PyPDF2 |
 | Frontend | Vanilla JS (ES6+), HTML5, CSS3 |
 | CORS | Flask-CORS |
@@ -311,6 +311,7 @@ gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
 |---|---|---|
 | `GROQ_API_KEY` | ✅ Yes | Groq AI API key for LLM features |
 | `JWT_SECRET_KEY` | ✅ Yes | Secret key for JWT signing |
+| `SUPABASE_DB_URL` | ✅ Yes | Connection string for Supabase PostgreSQL |
 | `EMAIL_ENABLED` | No | `true` / `false` (default: `false`) |
 | `EMAIL_HOST` | No | SMTP host (e.g., `smtp.gmail.com`) |
 | `EMAIL_PORT` | No | SMTP port (e.g., `587`) |
