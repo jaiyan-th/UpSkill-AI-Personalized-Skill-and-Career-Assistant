@@ -3,7 +3,7 @@ Database Utility Functions
 Handles database operations with retry logic for lock errors
 """
 
-import sqlite3
+import psycopg2
 import time
 from functools import wraps
 
@@ -23,8 +23,9 @@ def retry_on_lock(max_retries=3, delay=0.1):
             for attempt in range(max_retries):
                 try:
                     return func(*args, **kwargs)
-                except sqlite3.OperationalError as e:
-                    if "database is locked" in str(e).lower():
+                except psycopg2.OperationalError as e:
+                    # Retry on general operational errors or deadlocks in Postgres
+                    if "deadlock" in str(e).lower() or "timeout" in str(e).lower():
                         last_error = e
                         if attempt < max_retries - 1:
                             time.sleep(delay * (attempt + 1))  # Exponential backoff
@@ -58,8 +59,8 @@ def execute_with_retry(db, query, params=None, max_retries=3):
             else:
                 result = db.execute(query)
             return result
-        except sqlite3.OperationalError as e:
-            if "database is locked" in str(e).lower():
+        except psycopg2.OperationalError as e:
+            if "deadlock" in str(e).lower() or "timeout" in str(e).lower():
                 last_error = e
                 if attempt < max_retries - 1:
                     time.sleep(0.1 * (attempt + 1))
@@ -83,8 +84,8 @@ def commit_with_retry(db, max_retries=3):
         try:
             db.commit()
             return
-        except sqlite3.OperationalError as e:
-            if "database is locked" in str(e).lower():
+        except psycopg2.OperationalError as e:
+            if "deadlock" in str(e).lower() or "timeout" in str(e).lower():
                 last_error = e
                 if attempt < max_retries - 1:
                     time.sleep(0.1 * (attempt + 1))

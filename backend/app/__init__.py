@@ -34,7 +34,8 @@ def create_app():
     # Setup logging
     setup_logging(app)
 
-    init_db()
+    with app.app_context():
+        init_db()
     
     # Register global error handlers
     register_error_handlers(app)
