@@ -501,7 +501,7 @@ Include free and paid options. Format: Course Name - Platform - Price"""
         
         db.execute(
             """INSERT INTO skill_gap_analysis (user_id, target_role, gap_data, created_at)
-               VALUES (?, ?, ?, datetime('now'))""",
+               VALUES (?, ?, ?, CURRENT_TIMESTAMP)""",
             [user_id, analysis_data['target_role'], json.dumps(analysis_data)]
         )
         db.commit()
@@ -520,14 +520,14 @@ Include free and paid options. Format: Course Name - Platform - Price"""
         if existing:
             db.execute(
                 """UPDATE learning_paths 
-                   SET path_data = ?, updated_at = datetime('now')
+                   SET path_data = ?, updated_at = CURRENT_TIMESTAMP
                    WHERE id = ?""",
                 [json.dumps(path_data), existing['id']]
             )
         else:
             db.execute(
                 """INSERT INTO learning_paths (user_id, target_role, path_data, created_at)
-                   VALUES (?, ?, ?, datetime('now'))""",
+                   VALUES (?, ?, ?, CURRENT_TIMESTAMP)""",
                 [user_id, target_role, json.dumps(path_data)]
             )
         

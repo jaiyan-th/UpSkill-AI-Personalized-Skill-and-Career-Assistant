@@ -53,7 +53,7 @@ class ProctorService:
         cursor = db.execute(
             """INSERT INTO proctor_logs 
                (session_id, event_type, severity, details, snapshot, timestamp)
-               VALUES (?, ?, ?, ?, ?, datetime('now'))""",
+               VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
             [session_id, event_type, severity, details_json, snapshot]
         )
         db.commit()
@@ -83,7 +83,7 @@ class ProctorService:
         cursor = db.execute(
             """INSERT INTO proctor_snapshots 
                (session_id, image_data, frame_number, captured_at)
-               VALUES (?, ?, ?, datetime('now'))""",
+               VALUES (?, ?, ?, CURRENT_TIMESTAMP)""",
             [session_id, image_data, frame_number]
         )
         db.commit()

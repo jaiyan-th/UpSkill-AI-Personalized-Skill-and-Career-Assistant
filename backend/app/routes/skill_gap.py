@@ -216,7 +216,7 @@ def get_analysis_history(current_user):
         db = get_db()
         
         analyses = db.execute(
-            """SELECT id, target_role, gap_data, created_at 
+            """SELECT analysis_id as id, target_role, gap_data, created_at 
                FROM skill_gap_analysis 
                WHERE user_id = ? 
                ORDER BY created_at DESC 
@@ -244,6 +244,35 @@ def get_analysis_history(current_user):
     except Exception as e:
         print(f"Error in get_analysis_history: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
+
+
+@skill_gap_bp.route('/history/<int:analysis_id>', methods=['DELETE'])
+@require_auth
+def delete_skill_gap_history(current_user, analysis_id):
+    """Delete a specific skill gap analysis from history."""
+    try:
+        user_id = current_user['id']
+        from app.database import get_db
+        db = get_db()
+        
+        # Check if it exists and belongs to the user
+        analysis = db.execute(
+            "SELECT analysis_id FROM skill_gap_analysis WHERE analysis_id = ? AND user_id = ?",
+            (analysis_id, user_id)
+        ).fetchone()
+        
+        if not analysis:
+            return jsonify({'success': False, 'error': 'Skill gap analysis not found or unauthorized'}), 404
+            
+        # Delete it
+        db.execute("DELETE FROM skill_gap_analysis WHERE analysis_id = ?", (analysis_id,))
+        db.commit()
+        
+        return jsonify({'success': True, 'message': 'Skill gap analysis deleted successfully'})
+        
+    except Exception as e:
+        print(f"Error deleting skill gap history: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @skill_gap_bp.route('/progress', methods=['POST'])
@@ -275,7 +304,7 @@ def update_progress(current_user):
         db.execute(
             """INSERT OR REPLACE INTO user_skill_graph 
                (user_id, skill_name, skill_level, last_assessed)
-               VALUES (?, ?, ?, datetime('now'))""",
+               VALUES (?, ?, ?, CURRENT_TIMESTAMP)""",
             [user_id, skill, f"{progress}%"]
         )
         db.commit()

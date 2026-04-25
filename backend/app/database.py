@@ -51,34 +51,167 @@ class PostgresConnection:
     def __init__(self, conn):
         self.conn = conn
 
+    def _reconnect(self):
+        try:
+            self.conn.close()
+        except:
+            pass
+            
+        from flask import g, current_app
+        # Always create a guaranteed fresh connection for mid-flight reconnects
+        self.conn = psycopg2.connect(
+            current_app.config["SUPABASE_DB_URL"],
+            connect_timeout=10,
+            keepalives=1,
+            keepalives_idle=10,
+            keepalives_interval=3,
+            keepalives_count=3,
+            options="-c statement_timeout=10000"
+        )
+        
+        # If the old connection came from the pool, tell the pool it's closed
+        if hasattr(g, 'db_conn'):
+            is_raw = getattr(g, 'raw_conn', False)
+            if not is_raw:
+                try:
+                    get_pool().putconn(g.db_conn, close=True)
+                except:
+                    pass
+                    
+        g.db_conn = self.conn
+        g.raw_conn = True
+
     def execute(self, query, params=None):
-        cursor = self.conn.cursor(cursor_factory=DictCursor)
-        wrapper = PostgresCursorWrapper(cursor)
-        wrapper.execute(query, params)
-        return wrapper
+        try:
+            cursor = self.conn.cursor(cursor_factory=DictCursor)
+            wrapper = PostgresCursorWrapper(cursor)
+            wrapper.execute(query, params)
+            return wrapper
+        except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+            # If the connection was closed by the server (e.g. Supabase pooler), reconnect and retry once
+            if "closed" in str(e).lower() or "terminated" in str(e).lower() or "ssl" in str(e).lower():
+                import logging
+                logging.warning(f"Database connection lost ({str(e)}). Reconnecting with fresh raw connection...")
+                self._reconnect()
+                cursor = self.conn.cursor(cursor_factory=DictCursor)
+                wrapper = PostgresCursorWrapper(cursor)
+                wrapper.execute(query, params)
+                return wrapper
+            raise
 
     def commit(self):
-        self.conn.commit()
+        try:
+            self.conn.commit()
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            pass
 
     def close(self):
-        self.conn.close()
+        try:
+            self.conn.close()
+        except:
+            pass
 
     def rollback(self):
-        self.conn.rollback()
+        try:
+            self.conn.rollback()
+        except:
+            pass
+
+
+from psycopg2.pool import SimpleConnectionPool
+import logging
+
+# Global connection pool
+_db_pool = None
+
+def get_pool():
+    global _db_pool
+    if _db_pool is None:
+        from flask import current_app
+        db_url = current_app.config.get("SUPABASE_DB_URL")
+        try:
+            # Min 1, Max 20 connections in the pool
+            # Add TCP keepalives to aggressively detect silently dropped connections by Supabase/AWS
+            _db_pool = SimpleConnectionPool(
+                1, 20, db_url,
+                connect_timeout=10,
+                keepalives=1,
+                keepalives_idle=10,
+                keepalives_interval=3,
+                keepalives_count=3,
+                options="-c statement_timeout=10000"
+            )
+            logging.info("Initialized PostgreSQL connection pool with keepalives")
+        except Exception as e:
+            logging.error(f"Failed to initialize database pool: {e}")
+            raise e
+    return _db_pool
 
 
 def get_db():
     if "db" not in g:
-        # Use DictCursor to support both index and key access (like sqlite3.Row)
-        conn = psycopg2.connect(current_app.config["SUPABASE_DB_URL"])
+        pool = get_pool()
+        conn = None
+        
+        # Try up to 5 times to get a working connection from the pool
+        for _ in range(5):
+            try:
+                conn = pool.getconn()
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                # VERY IMPORTANT: Release the transaction so PgBouncer can reuse the server connection!
+                conn.rollback()
+                break  # Connection is good!
+            except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                # Connection is dead, throw it away
+                try:
+                    pool.putconn(conn, close=True)
+                except:
+                    pass
+                conn = None
+                
+        if not conn:
+            # Pool is exhausted of good connections, bypass pool and create fresh one
+            from flask import current_app
+            conn = psycopg2.connect(
+                current_app.config["SUPABASE_DB_URL"],
+                connect_timeout=10,
+                keepalives=1,
+                keepalives_idle=10,
+                keepalives_interval=3,
+                keepalives_count=3,
+                options="-c statement_timeout=10000"
+            )
+            g.raw_conn = True
+            
+        g.db_conn = conn
         g.db = PostgresConnection(conn)
     return g.db
 
 
 def close_db(e=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+    db_conn = g.pop("db_conn", None)
+    is_raw = g.pop("raw_conn", False)
+    g.pop("db", None)
+    
+    if db_conn is not None:
+        # VERY IMPORTANT: Rollback any uncommitted transaction (like a SELECT)
+        # to ensure PgBouncer releases the underlying server connection!
+        try:
+            db_conn.rollback()
+        except:
+            pass
+            
+        if is_raw:
+            try:
+                db_conn.close()
+            except:
+                pass
+        else:
+            try:
+                get_pool().putconn(db_conn)
+            except Exception as e:
+                logging.error(f"Error returning connection to pool: {e}")
 
 
 def init_db():

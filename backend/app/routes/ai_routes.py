@@ -96,13 +96,17 @@ def upload_resume():
             user_id = request.user["id"]
             db = get_db()
             
+            # Ensure no null bytes (\x00) are in the string, as PostgreSQL cannot store them in text fields
+            extracted_text = result.get("extracted_text", "")
+            safe_text = extracted_text.replace('\x00', '')[:5000]
+            
             cursor = db.execute(
                 """INSERT INTO resumes 
                    (user_id, resume_text, file_name, analysis_data, ats_score, target_role, uploaded_at)
-                   VALUES (?, ?, ?, ?, ?, ?, datetime('now'))""",
+                   VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
                 [
                     user_id,
-                    content.decode('utf-8', errors='ignore')[:5000],
+                    safe_text,
                     file.filename,
                     json.dumps(result),
                     result.get("score", 0),

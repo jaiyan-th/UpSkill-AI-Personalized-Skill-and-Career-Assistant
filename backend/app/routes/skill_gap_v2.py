@@ -166,7 +166,7 @@ Return ONLY valid JSON, no other text."""
             cursor = db.execute(
                 """INSERT INTO skill_gap_analysis 
                    (user_id, target_role, target_level, readiness_score, analysis_data, created_at)
-                   VALUES (?, ?, ?, ?, ?, datetime('now'))""",
+                   VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
                 [
                     user_id,
                     target_role,
@@ -344,7 +344,7 @@ Return ONLY valid JSON, no other text."""
             cursor = db.execute(
                 """INSERT INTO learning_paths 
                    (user_id, target_role, status, estimated_hours, path_data, created_at)
-                   VALUES (?, ?, 'not_started', ?, ?, datetime('now'))""",
+                   VALUES (?, ?, 'not_started', ?, ?, CURRENT_TIMESTAMP)""",
                 [
                     user_id,
                     target_role,

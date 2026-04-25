@@ -370,7 +370,7 @@ def end_interview():
                 """UPDATE interview_sessions
                    SET overall_score = ?,
                        status = 'completed',
-                       ended_at = datetime('now'),
+                       ended_at = CURRENT_TIMESTAMP,
                        evaluation_data = ?
                    WHERE id = ?""",
                 [overall_score, json.dumps(evaluation), session_id]

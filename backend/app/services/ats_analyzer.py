@@ -38,42 +38,208 @@ class ATSAnalyzer:
         if not text:
             raise Exception("Failed to extract text from file")
 
-        cleaned = self._clean(text)
-        resume_kw = self._keywords(cleaned)
-        job_kw = self._keywords(self._clean(job_description)) if job_description else []
+        # Use LLM for analysis
+        try:
+            from app.services.llm_service_v2 import LLMServiceV2
+            llm = LLMServiceV2()
+            
+            system_prompt = "You are a professional ATS (Applicant Tracking System) resume analyzer. Analyze the given resume for the target role and return a STRICT JSON response matching the UI format."
+            
+            prompt = f"""You are a recruiter-grade ATS (Applicant Tracking System) resume analyzer.
 
-        kw_score, matched, missing = self._kw_match(resume_kw, job_kw)
-        skills_score = self._skills_score(cleaned)
-        section_score = self._section_score(text)
-        fmt_score = self._fmt_score(text)
+Analyze the resume deeply for the given target role and return STRICT JSON output.
 
-        ats_score = int(kw_score * 0.4 + skills_score * 0.3 + section_score * 0.2 + fmt_score * 0.1)
+INPUT:
+Resume Text:
+{text[:4000]}
 
-        # Extract skills with proficiency levels
-        extracted_skills = self._extract_skills_with_levels(text, cleaned)
-        
-        # Extract experience and education
-        experience_years = self._extract_experience_years(text)
-        education_level = self._extract_education(text)
+Target Role:
+{job_description or 'General Software Engineer'}
+
+--------------------------------------
+
+OUTPUT FORMAT (STRICT JSON ONLY):
+
+{{
+  "ats_score": number,
+  "keywords_matched": number,
+  "skills_detected": [],
+  "missing_skills": [],
+  "improvements": number,
+  "suggestions": [],
+  "fit_level": ""
+}}
+
+--------------------------------------
+
+ANALYSIS LOGIC:
+
+1. ATS SCORE (0–100):
+
+Calculate using:
+
+- Keyword Match (30%)
+- Technical Skills Depth (25%)
+- Project Strength (20%)
+- Resume Structure (15%)
+- Action Verbs & Impact (10%)
+
+IMPORTANT SCORING RULES:
+- If projects include APIs → +5 score
+- If full stack (frontend + backend) → +10 score
+- If security features (auth/encryption) → +5 score
+- Do NOT over-penalize for missing Node.js if Python backend exists
+- Be realistic (typical fresher: 60–75)
+
+--------------------------------------
+
+2. KEYWORDS MATCHED:
+
+- Count relevant keywords using normalization:
+
+Examples:
+- "API", "REST", "REST API" → same
+- "JS" → JavaScript
+- "React.js" → React
+- "SQL", "SQLite", "MySQL" → SQL category
+
+Include keywords like:
+frontend, backend, react, javascript, api, flask, sql, docker, git
+
+Return total count.
+
+--------------------------------------
+
+3. SKILLS DETECTED:
+
+- Extract ONLY skills present in resume
+- Prioritize technical skills first
+- Format cleanly:
+
+Example:
+["Python", "JavaScript", "React", "SQL", "Flask", "REST API", "Docker", "Git"]
+
+- Include soft skills only if relevant
+
+--------------------------------------
+
+4. MISSING SKILLS:
+
+Return HIGH-IMPACT missing skills for Full Stack:
+
+Backend:
+Node.js, Express
+
+Database:
+MongoDB / PostgreSQL
+
+Frontend:
+JavaScript (if not explicit), Tailwind, State Management
+
+Other:
+JWT Authentication, Deployment, CI/CD
+
+Only include important ones (max 10).
+
+--------------------------------------
+
+5. IMPROVEMENTS:
+
+Count major issues:
+- Missing experience section
+- No measurable results
+- No deployment links
+- Weak project descriptions
+
+--------------------------------------
+
+6. SUGGESTIONS:
+
+Give 4–6 sharp, resume-specific suggestions:
+- Max 12 words each
+- Use action verbs
+
+Examples:
+- "Add Node.js backend project"
+- "Include deployed project links"
+- "Quantify project results with metrics"
+- "Highlight authentication in backend systems"
+
+--------------------------------------
+
+7. FIT LEVEL:
+
+Based on ATS score:
+- 80+ → "Strong"
+- 60–79 → "Moderate"
+- <60 → "Weak"
+
+--------------------------------------
+
+STRICT RULES:
+
+- Output ONLY JSON (no explanation)
+- Do NOT hallucinate skills
+- Do NOT include irrelevant technologies
+- Prefer practical developer evaluation over keyword stuffing
+- Be consistent and realistic
+"""
+            
+            response = llm.generate(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                temperature=0.2,
+                json_mode=True,
+                retries=3
+            )
+            
+            llm_result = llm.parse_json_response(response, fallback={})
+            
+            if not llm_result:
+                raise Exception("LLM returned empty or invalid JSON")
+                
+        except Exception as e:
+            print(f"LLM ATS Analysis failed, falling back to legacy: {e}")
+            # Fallback to old logic
+            cleaned = self._clean(text)
+            resume_kw = self._keywords(cleaned)
+            job_kw = self._keywords(self._clean(job_description)) if job_description else []
+            kw_score, matched, missing = self._kw_match(resume_kw, job_kw)
+            skills_score = self._skills_score(cleaned)
+            section_score = self._section_score(text)
+            fmt_score = self._fmt_score(text)
+            ats_score = int(kw_score * 0.4 + skills_score * 0.3 + section_score * 0.2 + fmt_score * 0.1)
+            extracted_skills = self._extract_skills_with_levels(text, cleaned)
+            
+            llm_result = {
+                "ats_score": ats_score,
+                "matched_keywords": matched[:20],
+                "missing_skills": missing[:15],
+                "suggestions": self._suggestions(ats_score, matched, missing, text),
+                "skills_detected": [s["name"] for s in extracted_skills],
+                "fit_level": "Strong" if ats_score >= 80 else ("Moderate" if ats_score >= 60 else "Weak")
+            }
 
         return {
-            "score": ats_score,
-            "matched_keywords": matched[:20],
-            "missing_keywords": missing[:15],
-            "suggestions": self._suggestions(ats_score, matched, missing, text),
+            "score": llm_result.get("ats_score", 0),
+            "matched_keywords": llm_result.get("skills_detected", []), # UI needs an array
+            "missing_keywords": llm_result.get("missing_skills", []),
+            "suggestions": llm_result.get("suggestions", []),
+            "fit_level": llm_result.get("fit_level", "Moderate"),
             "breakdown": {
-                "keyword_match": int(kw_score),
-                "skills_match": int(skills_score),
-                "section_completeness": int(section_score),
-                "formatting": int(fmt_score),
+                "keyword_match": 0,
+                "skills_match": 0,
+                "section_completeness": 0,
+                "formatting": 0,
             },
             "extracted_data": {
-                "skills": extracted_skills,
-                "experience_years": experience_years,
-                "education_level": education_level,
-                "technical_skills": [s for s in extracted_skills if s["category"] == "technical"],
-                "soft_skills": [s for s in extracted_skills if s["category"] == "soft"],
+                "skills": llm_result.get("skills_detected", []),
+                "experience_years": 0,
+                "education_level": "",
+                "technical_skills": [],
+                "soft_skills": [],
             },
+            "extracted_text": text,
         }
 
     def _extract_text(self, filename: str, content: bytes) -> str:

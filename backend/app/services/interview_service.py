@@ -39,7 +39,7 @@ class InterviewService:
         cursor = db.execute(
             """INSERT INTO interview_sessions 
                (user_id, role, level, duration_minutes, status, started_at)
-               VALUES (?, ?, ?, ?, 'in_progress', datetime('now'))""",
+               VALUES (?, ?, ?, ?, 'in_progress', CURRENT_TIMESTAMP)""",
             [user_id, role, level, duration_minutes]
         )
         db.commit()
@@ -316,7 +316,7 @@ Return JSON:
             """UPDATE interview_sessions
                SET overall_score = ?,
                    status = 'completed',
-                   ended_at = datetime('now'),
+                   ended_at = CURRENT_TIMESTAMP,
                    evaluation_data = ?
                WHERE id = ?""",
             [overall_score, json.dumps(evaluation), session_id]
@@ -360,7 +360,7 @@ Return JSON:
         db.execute(
             """INSERT INTO proctor_logs 
                (session_id, event_type, details, timestamp)
-               VALUES (?, ?, ?, datetime('now'))""",
+               VALUES (?, ?, ?, CURRENT_TIMESTAMP)""",
             [session_id, event_type, details or '']
         )
         db.commit()

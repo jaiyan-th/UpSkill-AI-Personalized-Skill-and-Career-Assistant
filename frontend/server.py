@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import os
 
-PORT = 5174
+PORT = 8001
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -22,6 +22,7 @@ if __name__ == "__main__":
     # Change to current directory
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+    socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         print(f"Serving HTTP on 0.0.0.0 port {PORT} (http://0.0.0.0:{PORT}/) ...")
         print(f"Access the application at: http://localhost:{PORT}")

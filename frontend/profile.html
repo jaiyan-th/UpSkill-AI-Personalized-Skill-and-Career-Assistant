@@ -142,11 +142,7 @@
                             Last Active
                             <span class="val" id="last-active">Today</span>
                         </div>
-                        <div class="info-row">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            Plan
-                            <span class="val" style="color:var(--primary);">Free</span>
-                        </div>
+
                         <div class="info-row">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
                             Resumes
@@ -225,36 +221,7 @@
                         </div>
                     </div>
 
-                    <!-- Skills Overview -->
-                    <div class="section-card">
-                        <h3>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                            Strong Skills
-                        </h3>
-                        <div class="skill-tags" id="strong-skills">
-                            <span class="empty-tags">Complete a resume analysis to see your strong skills.</span>
-                        </div>
-                    </div>
 
-                    <div class="section-card">
-                        <h3>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                            Skills to Improve
-                        </h3>
-                        <div class="skill-tags" id="weak-skills">
-                            <span class="empty-tags">Complete a skill gap analysis to see areas to improve.</span>
-                        </div>
-                    </div>
-
-                    <div class="section-card">
-                        <h3>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Missing Skills
-                        </h3>
-                        <div class="skill-tags" id="missing-skills">
-                            <span class="empty-tags">Complete a skill gap analysis to see missing skills.</span>
-                        </div>
-                    </div>
 
                 </div>
             </div>
@@ -428,20 +395,17 @@
             }
         } catch(e) { console.warn('Skill gap history error:', e); }
 
-        // 6. Student skills from profile
+        // 6. Student profile role
         try {
             const res = await fetch(API.getBaseUrl() + '/api/profile/me', {
                 headers: { 'Authorization': 'Bearer ' + API.getToken() }
             });
             const data = await res.json();
-            if (data.skills && data.skills.length > 0) {
-                renderTags('strong-skills', data.skills, 'tag-strong');
-            }
             if (data.preferred_field) {
                 document.getElementById('profile-role').textContent = data.preferred_field;
                 document.getElementById('edit-role').value = data.preferred_field;
             }
-        } catch(e) { console.warn('Profile skills error:', e); }
+        } catch(e) { console.warn('Profile data error:', e); }
     }
 
     loadProfile();

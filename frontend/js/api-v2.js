@@ -254,7 +254,8 @@ const API = (() => {
       request('POST', '/api/ai/resume/ats-optimization', { resume_text: resumeText }),
     compareJob: (resumeText, jobDesc) =>
       request('POST', '/api/ai/resume/compare-job', { resume_text: resumeText, job_description: jobDesc }),
-    history: () => request('GET', '/api/resume/history')
+    history: () => request('GET', '/api/resume/history'),
+    deleteHistory: (id) => request('DELETE', `/api/resume/history/${id}`)
   };
 
   const interview = {
@@ -265,6 +266,7 @@ const API = (() => {
     end: (sessionId) =>
       request('POST', '/api/ai/interview/end', { session_id: sessionId }),
     history: () => request('GET', '/api/interview/history'),
+    deleteHistory: (id) => request('DELETE', `/api/interview/history/${id}`),
     insights: () => request('GET', '/api/interview/insights')
   };
 
@@ -295,7 +297,9 @@ const API = (() => {
       request('POST', '/api/ai/skills/assess-readiness', {
         current_skills: currentSkills,
         target_role: targetRole
-      })
+      }),
+    history: () => request('GET', '/api/skill-gap/history'),
+    deleteHistory: (id) => request('DELETE', `/api/skill-gap/history/${id}`)
   };
 
   const voice = {
@@ -376,30 +380,24 @@ const API = (() => {
   // Synchronously hides the page body until token is validated,
   // then either shows it or redirects — no flash of protected content.
   function guardPage() {
-    // 1. Hide body immediately to prevent flash
-    document.body.style.visibility = 'hidden';
-
-    // 2. Quick local check first
+    // 1. Quick local check first
     if (!isTokenValid()) {
       TokenManager.clear();
       window.location.href = 'index.html';
       return false;
     }
 
-    // 3. Schedule auto-logout for when token expires
+    // 2. Schedule auto-logout for when token expires
     _scheduleAutoLogout();
 
-    // 4. Async backend verify — if user was deleted or token revoked
+    // 3. Async backend verify — if user was deleted or token revoked
     auth.me().then(res => {
-      if (res && res.success) {
-        document.body.style.visibility = 'visible'; // show page
-      } else {
+      if (!res || !res.success) {
         TokenManager.clear();
         window.location.href = 'index.html';
       }
-    }).catch(() => {
-      // Server unreachable — show page anyway (offline tolerance)
-      document.body.style.visibility = 'visible';
+    }).catch(e => {
+      console.warn('Backend verification failed, continuing offline/cache mode', e);
     });
 
     return true;

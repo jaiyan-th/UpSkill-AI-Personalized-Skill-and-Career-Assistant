@@ -174,7 +174,7 @@ def me():
     try:
         db = get_db()
         row = db.execute(
-            "SELECT id, name, email, role FROM users WHERE id = ?",
+            "SELECT id, name, email, role, created_at FROM users WHERE id = ?",
             [request.user["id"]]
         ).fetchone()
         
@@ -185,7 +185,8 @@ def me():
             "id": row["id"],
             "name": row["name"],
             "email": row["email"],
-            "role": row["role"]
+            "role": row["role"],
+            "created_at": str(row["created_at"]) if "created_at" in row.keys() and row["created_at"] else None
         }
         
         return success_response(data={"user": user})

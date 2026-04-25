@@ -95,8 +95,10 @@ def get_resume_history(current_user):
         
         return jsonify({
             'success': True,
-            'history': history,
-            'stats': stats
+            'data': {
+                'history': history,
+                'stats': stats
+            }
         })
         
     except Exception as e:
@@ -104,3 +106,29 @@ def get_resume_history(current_user):
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e), 'success': False}), 500
+
+@resume_history_bp.route('/history/<int:resume_id>', methods=['DELETE'])
+@require_auth
+def delete_resume_history(current_user, resume_id):
+    """Delete a specific resume analysis from history."""
+    try:
+        from app.database import get_db
+        db = get_db()
+        
+        # Check if it exists and belongs to the user
+        resume = db.execute(
+            "SELECT id FROM resumes WHERE id = ? AND user_id = ?",
+            (resume_id, current_user['id'])
+        ).fetchone()
+        
+        if not resume:
+            return jsonify({'success': False, 'error': 'Resume not found or unauthorized'}), 404
+            
+        # Delete it
+        db.execute("DELETE FROM resumes WHERE id = ?", (resume_id,))
+        
+        return jsonify({'success': True, 'message': 'Resume analysis deleted successfully'})
+        
+    except Exception as e:
+        print(f"Error deleting resume history: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500

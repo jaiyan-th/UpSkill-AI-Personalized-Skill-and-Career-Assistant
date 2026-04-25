@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from .database import init_db
+from .database import init_db, close_db
 from .error_handlers import register_error_handlers
 from .hardening import setup_logging, add_security_headers, get_cors_config, validate_environment
 from .routes.auth import auth_bp
@@ -35,10 +35,13 @@ def create_app():
     setup_logging(app)
 
     with app.app_context():
-        init_db()
+        pass # Schema is already initialized
     
     # Register global error handlers
     register_error_handlers(app)
+    
+    # Close database connection at end of request
+    app.teardown_appcontext(close_db)
     
     # Add security headers to all responses
     @app.after_request

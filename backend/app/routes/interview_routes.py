@@ -177,9 +177,9 @@ def get_interview_history():
     # Auto-complete any stuck in_progress sessions older than 1 hour
     db.execute(
         """UPDATE interview_sessions 
-           SET status='completed', ended_at=datetime('now')
-           WHERE user_id=? AND status='in_progress'
-           AND started_at < datetime('now', '-1 hour')""",
+           SET status='completed', ended_at=CURRENT_TIMESTAMP
+           WHERE user_id=%s AND status='in_progress'
+           AND started_at < NOW() - INTERVAL '1 hour'""",
         [uid]
     )
     db.commit()
@@ -220,3 +220,32 @@ def get_interview_history():
             "average_score": round(average_score, 1)
         }
     })
+
+@interview_bp.route('/history/<int:session_id>', methods=['DELETE'])
+@require_auth
+def delete_interview_history(current_user, session_id):
+    """Delete a specific interview session from history."""
+    try:
+        uid = current_user["id"]
+        db = get_db()
+        
+        # Check if it exists and belongs to the user
+        session = db.execute(
+            "SELECT id FROM interview_sessions WHERE id = ? AND user_id = ?",
+            (session_id, uid)
+        ).fetchone()
+        
+        if not session:
+            return jsonify({'success': False, 'error': 'Interview not found or unauthorized'}), 404
+            
+        # Delete QA first (if no CASCADE is setup)
+        db.execute("DELETE FROM interview_qa WHERE session_id = ?", (session_id,))
+        # Delete session
+        db.execute("DELETE FROM interview_sessions WHERE id = ?", (session_id,))
+        db.commit()
+        
+        return jsonify({'success': True, 'message': 'Interview deleted successfully'})
+        
+    except Exception as e:
+        print(f"Error deleting interview history: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
