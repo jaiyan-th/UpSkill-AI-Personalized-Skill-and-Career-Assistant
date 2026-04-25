@@ -63,6 +63,8 @@ python server.py
 - **AI Interviewer** — Practice with an intelligent conversational AI
 - **Real-time Feedback** — Instant evaluation after every answer
 - **Multiple Roles** — Software Engineering, Product, Design, and more
+- **Code Evaluation Engine** — Interactive code execution, automated test generation, and plagiarism checking for technical rounds
+- **Voice Analysis** — Real-time speech tracking evaluating fluency, clarity, and confidence
 - **Proctoring** — Optional camera monitoring for exam integrity
 - **Performance Tracking** — Monitor improvement over time
 
@@ -76,6 +78,10 @@ python server.py
 - **AI Chat** — Ask career questions anytime, 24/7
 - **Context-Aware** — Remembers your profile and past sessions
 - **Expert Advice** — Salary negotiation, interview prep, career pivots
+
+### ✅ Workflow Orchestrator
+- **Automated Journey** — Seamlessly connects your workflow from Resume Upload → Skill Graph Building → Mock Interview → Gap Analysis → Learning Path
+- **Context Preservation** — Maintains the context of your skills and career goals across all interactions
 
 ### ✅ Analytics Dashboard
 - **Performance Trends** — Visual charts of your progress
@@ -96,8 +102,8 @@ python server.py
 ```
 backend/
 ├── app/
-│   ├── routes/           # API endpoints (auth, AI, interview)
-│   ├── services/         # Business logic & AI integrations
+│   ├── routes/           # API endpoints (auth, interview_v2, code_eval, voice)
+│   ├── services/         # Orchestrator, LLM, Code, and Voice engines
 │   ├── hardening.py      # Rate limiting & security middleware
 │   ├── error_handlers.py # Centralized error handling
 │   ├── database.py       # Database setup & management
@@ -161,6 +167,20 @@ POST /api/interview/start    # Start a new mock interview session
 POST /api/interview/answer   # Submit an answer
 POST /api/interview/end      # End the session and get feedback
 GET  /api/interview/history  # Get past interview sessions
+```
+
+### Code Evaluation
+```http
+POST /api/code/evaluate         # Evaluate code submission against test cases
+POST /api/code/generate-tests   # Generate test cases for a problem
+POST /api/code/check-plagiarism # Detect plagiarism in a code submission
+```
+
+### Voice Analysis
+```http
+POST /api/voice/analyze         # Analyze speech fluency, confidence, and clarity
+POST /api/voice/compare         # Compare multiple speech answers to show trends
+POST /api/voice/batch-analyze   # Analyze multiple transcripts concurrently
 ```
 
 ### Skills
