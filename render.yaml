@@ -2,6 +2,7 @@ services:
   - type: web
     name: upskill-ai-assistant
     env: python
+    region: oregon
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
     envVars:
@@ -10,4 +11,4 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: 3.10.12
+        value: 3.11.9
