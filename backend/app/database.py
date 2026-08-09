@@ -219,8 +219,14 @@ def init_db():
     if not db_path:
         db_path = "postgresql://postgres:postgres@localhost:5432/upskill"
         
-    conn = psycopg2.connect(db_path)
+    try:
+        conn = psycopg2.connect(db_path)
+    except Exception as err:
+        logging.warning(f"Database connection not available during init_db: {err}")
+        return
+        
     cursor = conn.cursor()
+
     
     # PostgreSQL Schema
     cursor.execute("""
