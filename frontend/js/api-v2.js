@@ -5,14 +5,23 @@
  */
 
 const API = (() => {
+  function getBaseUrl() {
+    if (window.API_BASE_URL) return window.API_BASE_URL;
+    if (window.location.protocol && window.location.protocol.startsWith('http')) {
+      return window.location.origin;
+    }
+    return 'http://localhost:5000';
+  }
+
   // ─── Configuration ────────────────────────────────────────────────────────
   const CONFIG = {
-    BASE_URL: 'http://localhost:5000',
+    BASE_URL: getBaseUrl(),
     TIMEOUT: 30000,
     MAX_RETRIES: 3,
     RETRY_DELAY: 1000,
     RETRY_STATUS_CODES: [408, 429, 500, 502, 503, 504]
   };
+
 
   // ─── Token Management ─────────────────────────────────────────────────────
   // Use sessionStorage so the session is cleared when the browser/tab is closed.
@@ -125,7 +134,9 @@ const API = (() => {
           fetchOptions.body = isFormData ? body : JSON.stringify(body);
         }
 
-        const response = await fetch(CONFIG.BASE_URL + path, fetchOptions);
+        const baseUrl = getBaseUrl();
+        const response = await fetch(baseUrl + path, fetchOptions);
+
 
         let data;
         const contentType = response.headers.get('content-type');
@@ -421,7 +432,8 @@ const API = (() => {
     showToast, setLoading, guardPage, populateUserInfo,
     getUser: TokenManager.getUser,
     getToken: TokenManager.get,
-    getBaseUrl: () => CONFIG.BASE_URL,
+    getBaseUrl,
+
     APIError, handleError
   };
 })();

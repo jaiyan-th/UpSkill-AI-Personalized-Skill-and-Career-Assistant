@@ -206,22 +206,24 @@ def get_cors_config(environment='development'):
         dict: CORS configuration
     """
     if environment == 'production':
-        # Restrict CORS in production
+        origins_env = os.getenv('ALLOWED_ORIGINS', '*')
+        origins = '*' if origins_env == '*' else [o.strip() for o in origins_env.split(',')]
         return {
-            'origins': os.getenv('ALLOWED_ORIGINS', 'http://localhost:8000').split(','),
+            'origins': origins,
             'supports_credentials': True,
             'allow_headers': ['Content-Type', 'Authorization'],
             'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
         }
     else:
         # Allow frontend origins in development
-        allowed = os.getenv('CORS_ORIGINS', 'http://localhost:5174,http://127.0.0.1:5174').split(',')
+        allowed = os.getenv('CORS_ORIGINS', 'http://localhost:5174,http://127.0.0.1:5174,http://localhost:5000').split(',')
         return {
             'origins': [o.strip() for o in allowed],
             'supports_credentials': True,
             'allow_headers': ['Content-Type', 'Authorization'],
             'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
         }
+
 
 # ─── Input Sanitization ───────────────────────────────────────────────────────
 

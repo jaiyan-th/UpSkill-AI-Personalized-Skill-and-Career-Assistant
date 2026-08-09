@@ -422,7 +422,7 @@
         API.showToast('Loading interview details...', 'info');
         
         // Fetch detailed interview data
-        fetch(`http://localhost:5000/api/interview/insights/${interviewId}`, {
+        fetch(`${API.getBaseUrl()}/api/interview/insights/${interviewId}`, {
             headers: {
                 'Authorization': `Bearer ${API.getToken()}`
             }

@@ -5,7 +5,13 @@
  */
 
 const API = (() => {
-  const BASE = 'http://localhost:5000';
+  const getBaseUrl = () => {
+    if (window.API_BASE_URL) return window.API_BASE_URL;
+    if (window.location.protocol.startsWith('http')) {
+      return window.location.origin;
+    }
+    return 'http://localhost:5000';
+  };
 
   // ─── Token helpers ────────────────────────────────────────────────────────
   const getToken = () => localStorage.getItem('upskill_token');
@@ -29,7 +35,8 @@ const API = (() => {
     const opts = { method, headers };
     if (body) opts.body = isFormData ? body : JSON.stringify(body);
 
-    const res = await fetch(BASE + path, opts);
+    const res = await fetch(getBaseUrl() + path, opts);
+
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
@@ -247,8 +254,9 @@ const API = (() => {
   return { 
     auth, dashboard, resume, interview, coach, learning, skills, 
     voice, code, proctor, analytics,  // NEW APIs
-    showToast, setLoading, guardPage, populateUserInfo, getUser, getToken 
+    showToast, setLoading, guardPage, populateUserInfo, getUser, getToken, getBaseUrl
   };
+
 })();
 
 // Inject spinner keyframe globally

@@ -235,7 +235,7 @@
         // Error Tests
         async function testValidationError() {
             try {
-                const response = await fetch('http://localhost:5000/api/auth/register', {
+                const response = await fetch(`${API.getBaseUrl()}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: 'test@example.com' }) // Missing name and password
@@ -248,7 +248,7 @@
 
         async function testInvalidEmail() {
             try {
-                const response = await fetch('http://localhost:5000/api/auth/register', {
+                const response = await fetch(`${API.getBaseUrl()}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -257,6 +257,7 @@
                         password: 'password123'
                     })
                 }).then(r => r.json());
+
                 showResult('validation-result', response, !response.success);
             } catch (error) {
                 showResult('validation-result', { error: error.message }, true);

@@ -16,7 +16,8 @@ import logging
 
 
 def create_app():
-    app = Flask(__name__)
+    frontend_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend'))
+    app = Flask(__name__, static_folder=frontend_folder, static_url_path='')
     app.url_map.strict_slashes = False
     
     # Validate environment variables
@@ -35,7 +36,11 @@ def create_app():
     setup_logging(app)
 
     with app.app_context():
-        pass # Schema is already initialized
+        try:
+            init_db()
+            app.logger.info("Database schema checked/initialized successfully.")
+        except Exception as db_err:
+            app.logger.warning(f"Database auto-initialization warning: {db_err}")
     
     # Register global error handlers
     register_error_handlers(app)
@@ -105,5 +110,19 @@ def create_app():
         from .hardening import check_system_health
         return check_system_health()
 
+    @app.route('/')
+    def serve_index():
+        return app.send_static_file('index.html')
+
+    @app.route('/<path:path>')
+    def serve_static(path):
+        target_file = os.path.join(frontend_folder, path)
+        if os.path.isfile(target_file):
+            return app.send_static_file(path)
+        if os.path.isfile(f"{target_file}.html"):
+            return app.send_static_file(f"{path}.html")
+        return app.send_static_file('index.html')
+
     app.logger.info('UpSkill AI Backend initialized successfully')
     return app
+

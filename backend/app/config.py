@@ -7,10 +7,13 @@ def _get_db_path():
     Expects SUPABASE_DB_URL or DATABASE_URL in environment variables.
     """
     url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+    if url and url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
     if not url:
         # Fallback to local postgres if nothing provided, but warn
         url = "postgresql://postgres:postgres@localhost:5432/upskill"
     return url
+
 
 
 class Config:
