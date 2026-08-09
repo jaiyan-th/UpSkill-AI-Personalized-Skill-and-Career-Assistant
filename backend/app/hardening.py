@@ -108,40 +108,48 @@ def rate_limit(max_requests=100, window_seconds=60, key_func=None):
 
 def setup_logging(app):
     """
-    Configure application logging
+    Configure application logging for local & cloud environments
     
     Args:
         app: Flask application instance
     """
-    # Create logs directory if it doesn't exist
-    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-    
-    # Configure file handler for general logs
-    file_handler = logging.FileHandler(os.path.join(log_dir, 'app.log'))
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(logging.Formatter(
-        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-    ))
-    
-    # Configure file handler for error logs
-    error_handler = logging.FileHandler(os.path.join(log_dir, 'error.log'))
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(logging.Formatter(
-        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s\n'
-        'Path: %(pathname)s:%(lineno)d\n'
-        'Exception: %(exc_info)s\n'
-    ))
-    
-    # Add handlers to app logger
-    app.logger.addHandler(file_handler)
-    app.logger.addHandler(error_handler)
     app.logger.setLevel(logging.INFO)
     
-    # Log startup
-    app.logger.info('Application started')
+    # Always add stdout StreamHandler for cloud environments (Render, Heroku, Docker)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    ))
+    app.logger.addHandler(console_handler)
     
+    # Attempt to create file handlers (optional for local dev)
+    try:
+        log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        
+        file_handler = logging.FileHandler(os.path.join(log_dir, 'app.log'))
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(logging.Formatter(
+            '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+        ))
+        
+        error_handler = logging.FileHandler(os.path.join(log_dir, 'error.log'))
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(logging.Formatter(
+            '[%(asctime)s] %(levelname)s in %(module)s: %(message)s\n'
+            'Path: %(pathname)s:%(lineno)d\n'
+            'Exception: %(exc_info)s\n'
+        ))
+        
+        app.logger.addHandler(file_handler)
+        app.logger.addHandler(error_handler)
+    except Exception as e:
+        app.logger.warning(f"File logging disabled: {e}")
+    
+    app.logger.info('Application started')
     return app
+
 
 # ─── Request Logging ──────────────────────────────────────────────────────────
 
